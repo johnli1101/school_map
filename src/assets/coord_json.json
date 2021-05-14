@@ -1,0 +1,9 @@
+{
+    "markers": [
+        {"label": 1, "lat": 100, "lng": 180}
+        ,{"label": 2, "lat": 0, "lng": 80}
+    ]
+    ,"line_segments": [
+        {"pt1": 1, "pt2": 2, "coords": [[100, 180], [0, 80]]}
+    ]
+}
