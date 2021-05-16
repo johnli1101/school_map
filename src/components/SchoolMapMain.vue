@@ -44,7 +44,7 @@
     shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
     });
     import L from 'leaflet';
-    import { CRS } from "leaflet";
+    //import { CRS } from "leaflet";
     import { LMap, LImageOverlay, LMarker, LPolyline, LTooltip } from "vue2-leaflet";
 
     export default {
@@ -83,10 +83,12 @@
         },
         data: () => ({
             url: require("./doushishaRyokanBldg.jpg"),
-            bounds: [[700, 1200], [-700, -1200]],
+            bounds: [[0, 0], [700, 1200]],
             minZoom: -1,
             activeMode: "",
-            crs: CRS.Simple,
+            crs: L.Util.extend(L.CRS.Simple, {
+                    transformation: new L.Transformation(1,0,1,0)
+                }),
             popupOptions: {
                 // closeButton: false
                 closeOnClick: false
@@ -128,7 +130,7 @@
                     newLineSegments.push ({
                             pt1: marker1.label
                             ,pt2: marker2.label
-                            ,coords: [[marker1.lat, marker1.lng], [marker2.lat, marker2.lng]]
+                            ,coord: [[marker1.lat, marker1.lng], [marker2.lat, marker2.lng]]
                     });
                 }
 
@@ -136,7 +138,6 @@
 
                 this.markers = newMarkers;
                 this.lineSegments = newLineSegments;
-                console.log(this.lineSegments);
                 this.activeMarker = {};
                 let passArgs = [{}, this.markers, this.lineSegments];
                 this.$emit("activate-toolbar", passArgs);
@@ -191,25 +192,8 @@
                 this.$emit("activate-toolbar", passArgs);
             },
             deleteMarker(marker) {
-                // let indexesToDelete = marker.lineIndex;
-                // let toDeleteCoords = {lat: marker.lat, lng: marker.lng};
-                // let toDeleteLineIndex = 0;
                 let toDeleteMarkerIndex = this.markers.indexOf(marker);
                 let toDeleteIndexes = [];
-
-                // //adjust all the lines that it's about to delete
-                // for(let lineIndex in indexesToDelete) {
-                //     //update the the other markers information
-                //     console.log(lineIndex);
-
-                //     toDeleteLineIndex = this.getCurrentLineIndex(toDeleteCoords, lineIndex);
-
-                //     console.log(toDeleteLineIndex);
-                //     //now delete the point from the lineSegments array
-                //     this.lineSegments[lineIndex].splice(toDeleteLineIndex, 1);
-                // }
-
-                //let newLineSegments = this.lineSegments;
 
                 //remove all lines connected to this marker
                 console.log(this.lineSegments);
@@ -259,16 +243,6 @@
                 }
 
                 return index;
-            },
-            //go through all the markers and turn all the markers off and only leave 1 activated marker for highlight
-            setActiveIcon(marker) {
-                console.log(marker);
-                // if(this.activeMarker.label === marker.label) {
-
-                // }
-                // else {
-
-                // }
             },
             onClickMarkerHandler(marker) {
                 console.log(L.point(marker.lat, marker.lng));
@@ -336,10 +310,6 @@
                     let newMarker = {};
                     let newMarkerName = this.nextUniqueId();
                     console.log(newMarkerName);
-                    //if there is something in the array then set to length
-                    // if(this.lineSegments[this.activelineSegmentsIndex]) {
-                    //     coordlineSegmentsIndex = this.lineSegments[this.activelineSegmentsIndex].length;
-                    // }
 
                     newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"]};
                     console.log(newMarker);
@@ -351,8 +321,6 @@
 
                     let markLength = this.markers.length;
 
-                    // this.addToLine(this.markers[markLength - 1], this.activelineSegmentsIndex);
-                    // console.log(this.lineSegments);
                     if(markLength > 1 && this.activeMarker.label && this.additionMode === "addConnectedMarker") {
                         this.addNewSegment(this.activeMarker, this.markers[markLength-1]);
                     }
@@ -372,22 +340,6 @@
 
                 this.lineSegments.push(newLineObject);                
             },
-            //adds the new coordinates to the lineSegments array
-            // addToLine(marker1, index) {
-            //     console.log(marker1);
-            //     let coordinates1 = [];
-            //     let lineSegmentsIndex = index;
-
-            //     //check if index exists and if not create a new one
-            //     if(!this.lineSegments[index]) {
-            //         this.lineSegments.push([]);
-            //         lineSegmentsIndex = this.lineSegments.length - 1;
-            //     }
-
-            //     coordinates1 = [marker1.lat, marker1.lng];
-
-            //     this.lineSegments[lineSegmentsIndex].push(coordinates1);
-            // },
             removeMarker(index) {
                 this.markers.splice(index, 1);
             },
@@ -437,24 +389,7 @@
                         this.$set(this.markers[i], "lng", newCoordinates[1]);
                     }
                 }
-                //let lineSegmentsIndex = this.getlineSegmentsIndex(newCoordinates);
-                //this.$set(this.lineSegments, lineSegmentsIndex, newCoordinates);
             },
-            // getlineSegmentsIndex() {
-            //     //let beforeLine = [];
-            //     let prevCoord = this.prevMarkerCoord;
-            //     let coordList = this.lineSegments;
-            //     let newIndex = -1;
-                
-            //     //custom indexOf for loop for finding the matching coordinates to index
-            //     for(let i = 0; i < coordList.length; ++i) {
-            //         if(coordList[i][0] === prevCoord[0] && coordList[i][1] === prevCoord[1]) {
-            //             newIndex = i;
-            //         }
-            //     }
-
-            //     return newIndex;
-            // }
         }
     }
 </script>
