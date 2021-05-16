@@ -8,8 +8,8 @@
             style="z-index: 0;"
         >
         <l-image-overlay
-            :url="url"
-            :bounds="bounds"
+            :url="mapImageURL"
+            :bounds="[[0, 0], this.mapBounds]"
         />
         <l-marker
             v-for="marker in markers"
@@ -57,6 +57,8 @@
         },
         props: {
             additionMode: String
+            ,mapImageURL: String
+            ,mapBounds: Array
         },
         watch: {
             markers: {
@@ -82,8 +84,8 @@
             }
         },
         data: () => ({
-            url: require("./doushishaRyokanBldg.jpg"),
-            bounds: [[0, 0], [700, 1200]],
+            // url: require(this.mapImageURL),
+            // bounds: [[0, 0], this.mapBounds],
             minZoom: -1,
             activeMode: "",
             crs: L.Util.extend(L.CRS.Simple, {

@@ -5,7 +5,7 @@
             color="primary"
             @click="dialog = true"
         >
-            Import Coordinates
+            Import Map
         </v-btn>
         <v-dialog
             v-model="dialog"
@@ -14,7 +14,7 @@
         >
             <v-card>
                 <v-card-title class="headline grey lighten-2">
-                    Please select a file you want to import. (It must be Json for it to work properly)
+                    Please select a map file you want to import. (It must be JPG for it to work properly)
                 </v-card-title>
                 <v-file-input
                     label="Map Import"
@@ -30,7 +30,7 @@
                     <v-btn
                         color="primary"
                         text
-                        @click="handleImport()"
+                        @click="handleImportMap()"
                     >
                         Yes
                     </v-btn>
@@ -58,22 +58,25 @@
             currentFile: []
         }),
         methods: {
-            handleImport() {
+            handleImportMap() {
                 let file = this.currentFile;
-                let newCoordJson = {};
+                let passArgs = [];
+
                 console.log(file);
+                let imageURL = URL.createObjectURL(file);
                 
-                let reader = new FileReader();
- 
-                reader.readAsText(file, "UTF-8");
-                reader.onload =  evt => {
-                    newCoordJson = evt.target.result;
-                    console.log(newCoordJson);
-                    this.$emit("on-import-json", newCoordJson);
+                let img = new Image();
+                img.onload = () => {
+                    //console.log(img.width + " " + img.height);
+                    passArgs[0] = imageURL;
+                    passArgs[1] = img.width;
+                    passArgs[2] = img.height;
+                    passArgs[3] = file.name;
+                    this.$emit("on-import-map", passArgs);  
                 }
-                reader.onerror = evt => {
-                    console.error(evt);
-                }
+                img.src = imageURL;
+                
+                
                 this.currentFile = [];
 
                 this.dialog = false;

@@ -1,7 +1,7 @@
 <template>
     <div>
-        <SchoolMapAppBar @on-import-json="importedJson($event)" :markers="markerList" :lineSegments="lineSegmentList" />
-        <SchoolMapMain @activate-toolbar="passSignalToToolBar($event)" :activeMarker="activeMarker" :additionMode="additionMode" />
+        <SchoolMapAppBar @on-import-map="importedMap($event)" @on-import-json="importedJson($event)" :markers="markerList" :lineSegments="lineSegmentList" />
+        <SchoolMapMain @activate-toolbar="passSignalToToolBar($event)" :mapImageURL="mapImageURL" :mapBounds="mapBounds" :activeMarker="activeMarker" :additionMode="additionMode" />
         <SchoolMapMarkerToolbar @pass-line-add-mode="passLineAddMode($event)" @pass-addition-mode="passAdditionMode($event)" @send-signal="passSignalToMap($event)" :markers="markerList" :marker="activeMarker" />
     </div>
 </template>
@@ -20,7 +20,10 @@
             markerList: [],
             lineSegmentList: [],
             importedCoordJson: {},
-            additionMode: ""
+            additionMode: "",
+            mapImageURL: require("./doushishaRyokanBldg.jpg"),
+            mapBounds: [700, 1200],
+            mapImageName: ""
         }),
         methods: {
             passSignalToToolBar(args) {
@@ -39,6 +42,12 @@
                 this.importedCoordJson = coordJson;
                 console.log(coordJson);
                 this.$root.$refs.Map.importedJson(coordJson);
+            },
+            importedMap(newMapArgs) {
+                this.mapBounds = [newMapArgs[2], newMapArgs[1]];
+                this.mapImageURL = newMapArgs[0];
+                this.mapImageName = newMapArgs[3];
+                console.log(this.mapBounds + " " + this.mapImageURL);
             }
         },
     }

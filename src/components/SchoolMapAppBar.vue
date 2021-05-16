@@ -10,7 +10,8 @@
 
             <v-spacer></v-spacer>
             <SchoolMapExport :markers="markers" :lineSegments="lineSegments" />
-            <SchoolMapImport @on-import-json="importedJson($event)"/>
+            <SchoolMapImport @on-import-json="importedJson($event)" />
+            <SchoolMapImportMap @on-import-map="importedMap($event)" />
             
             <v-btn icon>
                 <v-icon>mdi-heart</v-icon>
@@ -25,10 +26,11 @@
 <script>
     import SchoolMapImport from './SchoolMapImport';
     import SchoolMapExport from './SchoolMapExport';
+    import SchoolMapImportMap from './SchoolMapImportMap';
 
     export default {
         components: {
-            SchoolMapImport, SchoolMapExport
+            SchoolMapImport, SchoolMapExport, SchoolMapImportMap
         },
         props: {
             markers: Array
@@ -38,6 +40,10 @@
             importedJson(coordJson) {
                 console.log(coordJson);
                 this.$emit("on-import-json", coordJson);
+            },
+            importedMap(newMapArgs) {
+                console.log(newMapArgs);
+                this.$emit("on-import-map", newMapArgs);
             }
         }),
         methods: {
