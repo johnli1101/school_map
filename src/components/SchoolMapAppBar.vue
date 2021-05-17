@@ -9,7 +9,12 @@
             <v-toolbar-title>学校の地図</v-toolbar-title>
 
             <v-spacer></v-spacer>
-            <SchoolMapExport :markers="markers" :lineSegments="lineSegments" />
+            <SchoolMapExport 
+                @pass-mode="passMode($event)"
+                :markers="markers" 
+                :lineSegments="lineSegments" 
+                :additionMode="additionMode"    
+            />
             <SchoolMapImport @on-import-json="importedJson($event)" />
             <SchoolMapImportMap @on-import-map="importedMap($event)" />
             
@@ -35,6 +40,7 @@
         props: {
             markers: Array
             ,lineSegments: Array
+            ,additionMode: String
         },
         data: () => ({
             importedJson(coordJson) {
@@ -44,6 +50,9 @@
             importedMap(newMapArgs) {
                 console.log(newMapArgs);
                 this.$emit("on-import-map", newMapArgs);
+            },
+            passMode(mode) {
+                this.$emit("pass-mode", mode);
             }
         }),
         methods: {

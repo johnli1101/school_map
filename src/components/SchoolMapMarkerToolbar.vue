@@ -150,6 +150,8 @@
                             v-model="dialog"
                             width="50vh"
                             height="100vh"
+                            @keydown.enter="handleOnDelete"
+                            @keydown.esc="dialog = false"
                         >
                             <v-card>
                                 <v-card-title class="headline grey lighten-2">
@@ -196,6 +198,8 @@
                             v-model="dialogLine"
                             width="50vh"
                             height="100vh"
+                            @keydown.enter="handleOnLineDelete"
+                            @keydown.esc="dialog = false"
                         >
                             <v-card>
                                 <v-card-title class="headline grey lighten-2">
@@ -234,9 +238,13 @@
 <script>
 
     export default {
+        created() {
+            this.$root.$refs.Toolbar = this;
+        },
         props: {
             marker: Object,
-            markers: Array
+            markers: Array,
+            additionMode: String
         },
         watch: {
             marker: {
@@ -259,10 +267,6 @@
             active: false
             ,dialog: false
             ,dialogLine: false
-            ,additionMode: false
-            ,addConnectedMark: false
-            //,additionMode: ""
-            ,lineAddMode: false
             ,activeMode: ""
             ,currentSelection: {label: ""}
         }),
@@ -293,7 +297,6 @@
                 this.$root.$refs.Map.deleteLineSegment(this.marker);
             },
             handleChangeMode(mode) {
-                this.additionMode = mode;
                 this.$emit("pass-addition-mode", mode);
             },
         }

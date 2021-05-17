@@ -4,6 +4,7 @@
             ref="map"
             :min-zoom="minZoom"
             :crs="crs"
+            :center="calculateCenter()"
             @click="addMarker"
             style="z-index: 0;"
         >
@@ -21,13 +22,26 @@
             @dragend="dragEndHandler"
             @click="onClickMarkerHandler(marker)"
         >
-            <l-tooltip :options="tooltipOptions">{{marker.label}}</l-tooltip>
+            <l-tooltip 
+                v-if="marker.label === activeMarker.label"
+                :options="tooltipOptions" 
+                class="leaflet-tooltip"
+            >
+                {{marker.label}}
+            </l-tooltip>
+            <l-tooltip 
+                v-else
+                :options="tooltipOptions"
+            >
+                {{marker.label}}
+            </l-tooltip>
             <!-- <l-popup :content="marker.label" :options="popupOptions" /> -->
         </l-marker>
         <l-polyline 
             v-for="(line) in lineSegments"
             :key="line.pt1 + '-' + line.pt2"
             :lat-lngs="line.coord" 
+            :color="polylineColor(line)"
             @click="onClickPolyLine" 
         />
         </l-map>
@@ -61,15 +75,6 @@
             ,mapBounds: Array
         },
         watch: {
-            markers: {
-                deep: true,
-                handler() {
-                    console.log("Oh Hello");
-                    // this.$nextTick(() => {
-                    //     this.$refs["marker"][this.markers.length-1]["mapObject"].openPopup();
-                    // });
-                }
-            },
             additionMode: {
                 deep: true,
                 handler(val) {
@@ -84,8 +89,6 @@
             }
         },
         data: () => ({
-            // url: require(this.mapImageURL),
-            // bounds: [[0, 0], this.mapBounds],
             minZoom: -1,
             activeMode: "",
             crs: L.Util.extend(L.CRS.Simple, {
@@ -106,8 +109,51 @@
         }),
         created() {
             this.$root.$refs.Map = this;
+            let newMode = "";
+
+            //handle button presses
+            window.addEventListener('keydown', (e) => {
+                switch(e.key) {
+                    case "d":
+                        if(this.activeMode === "marker") {
+                            //handle delete function
+                            this.$root.$refs.Toolbar.handleClickDelete()
+                        }
+                        else if(this.activeMode === "lineSegment") {
+                            this.$root.$refs.Toolbar.handleClickLineDelete()
+                        }
+                        break;
+                    case "q":
+                        newMode = (this.additionMode === "addMarker") ? "" : "addMarker";
+                        this.$emit("change-mode", newMode); 
+                        break;
+                    case "w":
+                        newMode = (this.additionMode === "addConnectedMarker") ? "" : "addConnectedMarker";
+                        this.$emit("change-mode", newMode);
+                        break;
+                    case "e":
+                        newMode = (this.additionMode === "lineAdd") ? "" : "lineAdd";
+                        this.$emit("change-mode", newMode);
+                        break;
+                }
+            });
         },
         methods: {
+            polylineColor(line) {
+                if(this.activeMarker.pt1 === line.pt1
+                    && this.activeMarker.pt2 === line.pt2) {
+                        console.log("Hello");
+                    return "purple";
+                }
+                return "#0097FF";
+            },
+            calculateCenter() {
+                return [this.mapBounds[0] / 2, this.mapBounds[1] / 2];
+            },
+            clearMarkers() {
+                this.markers = [];
+                this.lineSegments = [];
+            },
             importedJson(coordJson) {
                 let newMarkers = [];
                 let newLineSegments = [];
@@ -403,5 +449,9 @@
         z-index: 0;
         display: block;
         align-items: center;
+    }
+    .leaflet-tooltip {
+        background-color: #006FFF;
+        color: #FFFFFF;
     }
 </style>

@@ -1,8 +1,28 @@
 <template>
     <div>
-        <SchoolMapAppBar @on-import-map="importedMap($event)" @on-import-json="importedJson($event)" :markers="markerList" :lineSegments="lineSegmentList" />
-        <SchoolMapMain @activate-toolbar="passSignalToToolBar($event)" :mapImageURL="mapImageURL" :mapBounds="mapBounds" :activeMarker="activeMarker" :additionMode="additionMode" />
-        <SchoolMapMarkerToolbar @pass-line-add-mode="passLineAddMode($event)" @pass-addition-mode="passAdditionMode($event)" @send-signal="passSignalToMap($event)" :markers="markerList" :marker="activeMarker" />
+        <SchoolMapAppBar 
+            @on-import-map="importedMap($event)" 
+            @on-import-json="importedJson($event)" 
+            :markers="markerList" 
+            :lineSegments="lineSegmentList" 
+        />
+        <SchoolMapMain 
+            @change-mode="passAdditionMode($event)" 
+            @activate-toolbar="passSignalToToolBar($event)" 
+            :mapImageURL="mapImageURL" 
+            :mapBounds="mapBounds" 
+            :activeMarker="activeMarker" 
+            :additionMode="additionMode" 
+        />
+        <SchoolMapMarkerToolbar 
+            @pass-line-add-mode="passLineAddMode($event)" 
+            @pass-addition-mode="passAdditionMode($event)" 
+            @send-signal="passSignalToMap($event)" 
+            @pass-mode="passAdditionMode($event)"
+            :markers="markerList" 
+            :marker="activeMarker" 
+            :additionMode="additionMode"
+        />
     </div>
 </template>
 
@@ -48,6 +68,7 @@
                 this.mapImageURL = newMapArgs[0];
                 this.mapImageName = newMapArgs[3];
                 console.log(this.mapBounds + " " + this.mapImageURL);
+                this.$root.$refs.Map.clearMarkers();
             }
         },
     }
