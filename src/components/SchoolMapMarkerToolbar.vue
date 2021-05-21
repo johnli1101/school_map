@@ -93,10 +93,10 @@
                 </span>
             <v-toolbar-title>
                 <span v-if="activeMode === 'marker'">
-                    Marker: {{marker.label}}
+                    Marker: {{activeMarker.label}}
                 </span>
                 <span v-else-if="activeMode === 'lineSegment'">
-                    Line Segment: {{marker.pt1}} to {{marker.pt2}}
+                    Line Segment: {{activeMarker.pt1}} to {{activeMarker.pt2}}
                 </span>
             </v-toolbar-title>
             
@@ -241,33 +241,28 @@
         created() {
             this.$root.$refs.Toolbar = this;
         },
-        props: {
-            marker: Object,
-            markers: Array,
-            additionMode: String
-        },
-        watch: {
-            marker: {
-                deep: true,
-                handler(val) {
-                    //if the object does not have label then it is a line segment clicked
-                    console.log(val);
-                    if(val["pt1"]) {
-                        this.activeMode = "lineSegment";
-                    } else if (val["label"]) {
-                        this.activeMode = "marker";
-                    } else {
-                        this.activeMode = "";
-                    }
-                    console.log(this.activeMode);
-                }
+        computed: {
+            additionMode() {
+                return this.$store.state.additionMode;
+            },
+            markers() {
+                return this.$store.state.markers;
+            },
+            activeMarker() {
+                return this.$store.state.activeMarker;
+            },
+            activeMode() {
+                return this.$store.state.activeMode;
             }
         },
+        props: {
+
+        },
+        watch: {
+        },
         data: () => ({
-            active: false
-            ,dialog: false
+            dialog: false
             ,dialogLine: false
-            ,activeMode: ""
             ,currentSelection: {label: ""}
         }),
         methods: {
@@ -277,7 +272,7 @@
             handleOnDelete() {
                 this.dialog = false;
 
-                this.$root.$refs.Map.deleteMarker(this.marker);
+                this.$root.$refs.Map.deleteMarker(this.activeMarker);
             },
             handleClickAddLine() {
                 console.log(this.currentSelection);
@@ -287,17 +282,17 @@
                         toConnectMarker = this.markers[i];
                     }
                 }
-                this.$root.$refs.Map.addNewSegment(this.marker, toConnectMarker);
+                this.$root.$refs.Map.addNewSegment(this.activeMarker, toConnectMarker);
             },
             handleClickLineDelete() {
                 this.dialogLine = true;
             },
             handleOnLineDelete() {
                 this.dialogLine = false;
-                this.$root.$refs.Map.deleteLineSegment(this.marker);
+                this.$root.$refs.Map.deleteLineSegment(this.activeMarker);
             },
             handleChangeMode(mode) {
-                this.$emit("pass-addition-mode", mode);
+                this.$store.dispatch('changeMode', mode);
             },
         }
     }

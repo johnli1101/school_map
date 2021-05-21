@@ -15,12 +15,19 @@ export default {
     data: () => ({
         
     }),
+    computed: {
+        markers() {
+            return this.$store.state.markers;
+        },
+        lineSegments() {
+            return this.$store.state.lineSegments;
+        }
+    },
     components: {
 
     },
     props: {
-        markers: Array,
-        lineSegments: Array
+        
     },
     methods: {
         handleExport() {

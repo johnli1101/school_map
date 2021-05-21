@@ -58,7 +58,6 @@
     shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
     });
     import L from 'leaflet';
-    //import { CRS } from "leaflet";
     import { LMap, LImageOverlay, LMarker, LPolyline, LTooltip } from "vue2-leaflet";
 
     export default {
@@ -70,70 +69,60 @@
             LTooltip
         },
         props: {
-            additionMode: String
-            ,mapImageURL: String
+            mapImageURL: String
             ,mapBounds: Array
         },
-        watch: {
-            additionMode: {
-                deep: true,
-                handler(val) {
-                    console.log(val);
-                    if(val === "lineAdd") {
-                        this.activeMarker = {};
-                        let passArgs = [{}];
-                        this.$emit("activate-toolbar", passArgs);
-                    }
-                    return val;
-                }
+        computed: {
+            additionMode() {
+                return this.$store.state.additionMode;
+            },
+            activeMarker() {
+                return this.$store.state.activeMarker;
+            },
+            activeMode() {
+                return this.$store.state.activeMode;
+            },
+            markers() {
+                return this.$store.state.markers;
+            },
+            lineSegments() {
+                return this.$store.state.lineSegments;
             }
         },
         data: () => ({
             minZoom: -1,
-            activeMode: "",
             crs: L.Util.extend(L.CRS.Simple, {
                     transformation: new L.Transformation(1,0,1,0)
                 }),
-            popupOptions: {
-                // closeButton: false
-                closeOnClick: false
-                ,autoClose: false
-            },
             tooltipOptions: {
                 permanent: true
             },
             prevMarkerCoord: [],
-            markers: [],
-            lineSegments: [],
-            activeMarker: {},
         }),
         created() {
             this.$root.$refs.Map = this;
-            let newMode = "";
 
             //handle button presses
             window.addEventListener('keydown', (e) => {
                 switch(e.key) {
                     case "d":
-                        if(this.activeMode === "marker") {
+                        if(this.activeMode === "marker" && this.markers.length > 0) {
                             //handle delete function
                             this.$root.$refs.Toolbar.handleClickDelete()
                         }
-                        else if(this.activeMode === "lineSegment") {
+                        else if(this.activeMode === "lineSegment" && this.lineSegments.length > 0) {
                             this.$root.$refs.Toolbar.handleClickLineDelete()
                         }
                         break;
                     case "q":
-                        newMode = (this.additionMode === "addMarker") ? "" : "addMarker";
-                        this.$emit("change-mode", newMode); 
+                        this.$store.dispatch('changeMode', "addMarker");
                         break;
                     case "w":
-                        newMode = (this.additionMode === "addConnectedMarker") ? "" : "addConnectedMarker";
-                        this.$emit("change-mode", newMode);
+                        this.$store.dispatch('changeMode', "addConnectedMarker");
                         break;
                     case "e":
-                        newMode = (this.additionMode === "lineAdd") ? "" : "lineAdd";
-                        this.$emit("change-mode", newMode);
+                        this.$store.dispatch('changeMode', "lineAdd");
+
                         break;
                 }
             });
@@ -151,8 +140,7 @@
                 return [this.mapBounds[0] / 2, this.mapBounds[1] / 2];
             },
             clearMarkers() {
-                this.markers = [];
-                this.lineSegments = [];
+                this.$store.dispatch('clearAllMarkersAndSegments');
             },
             importedJson(coordJson) {
                 let newMarkers = [];
@@ -184,22 +172,17 @@
 
                 console.log(newLineSegments);
 
-                this.markers = newMarkers;
-                this.lineSegments = newLineSegments;
-                this.activeMarker = {};
-                let passArgs = [{}, this.markers, this.lineSegments];
-                this.$emit("activate-toolbar", passArgs);
+                this.$store.dispatch('setNewMarkersList', newMarkers);
+                this.$store.dispatch('setNewLineSegmentsList', newLineSegments);
+                this.$store.dispatch('changeActiveMarker', {});
             },
             onClickPolyLine(event) {
                 if(!this.additionMode) {
                     const verts = event.target.getLatLngs() // verts...vertices of polyline
-                    console.log(this.lineSegments);
-                    this.activeMode = "lineSegment";
-                    this.activeMarker = this.getLineSegmentFromCoords(verts);
-                    let passArgs = [this.activeMarker]
+                    this.$store.dispatch('changeActiveMode', "lineSegment");
+                    this.$store.dispatch('changeActiveMarker', this.getLineSegmentFromCoords(verts));
                     console.log(this.activeMarker);
                     console.log(this.lineSegments);
-                    this.$emit("activate-toolbar", passArgs);
                 }
             },
             getMarkerFromMarkerLabel(markerLabel, markerList) {
@@ -230,17 +213,11 @@
             deleteLineSegment(lineSegment) {
                 console.log(this.lineSegments);
                 console.log(lineSegment);
-                let toDeleteLineIndex = this.lineSegments.indexOf(lineSegment);
 
-                this.lineSegments.splice(toDeleteLineIndex, 1);
-
-                this.activeMode = "";
-                let passArgs = [{}, this.markers, this.lineSegments];
-                
-                this.$emit("activate-toolbar", passArgs);
+                this.$store.dispatch('deleteFromLineSegments', lineSegment);
+                this.$store.dispatch('changeActiveMode', "");
             },
             deleteMarker(marker) {
-                let toDeleteMarkerIndex = this.markers.indexOf(marker);
                 let toDeleteIndexes = [];
 
                 //remove all lines connected to this marker
@@ -255,31 +232,16 @@
 
                 //splice line segments from the array
                 for(let i = toDeleteIndexes.length-1; i >= 0; --i) {
-                    this.lineSegments.splice(toDeleteIndexes[i], 1);
+                    this.$store.dispatch('deleteFromLineSegments', this.lineSegments[toDeleteIndexes[i]]);
                 }
 
                 //after fixing all of it now delete the point
-                this.markers.splice(toDeleteMarkerIndex, 1);
+                this.$store.dispatch('deleteFromMarkers', marker);
+
                 console.log(this.lineSegments);
                 console.log(this.markers);
 
-                let passArgs = [];
-                //change active marker to the one before this
-                if(this.markers.length === 1) {
-                    this.activeMarker = this.markers[0];
-                    passArgs = [this.activeMarker, this.markers, this.lineSegments];
-                }
-                else if(this.markers.length > 0) {
-                    this.activeMarker = this.markers[toDeleteMarkerIndex-1];
-                    passArgs = [this.activeMarker, this.markers, this.lineSegments];
-                }
-                else {
-                    this.activeMarker = {};
-                    passArgs = [{}, this.markers, this.lineSegments];
-                }
-
-                this.activeMode = "marker";
-                this.$emit("activate-toolbar", passArgs);
+                this.$store.dispatch('changeActiveMode', "marker");
             },
             getCurrentLineIndex(coords, lineIndex) {
                 let index = -1;                
@@ -293,33 +255,21 @@
                 return index;
             },
             onClickMarkerHandler(marker) {
-                console.log(L.point(marker.lat, marker.lng));
                 if(this.additionMode === "lineAdd") {
                     if(this.markers.length > 1) {
                        if(this.activeMarker.label) {
-                           console.log("IM IN");
-                           console.log(this.activeMarker);
-                           console.log(marker);
                            this.addNewSegment(this.activeMarker, marker);
-                           this.activeMarker = {};
-                           let passArgs = [{}, this.markers, this.lineSegments];
-                           this.$emit("activate-toolbar", passArgs);
+                           this.$store.dispatch('changeActiveMarker', {});
                        }
                        else {
-                            this.activeMarker = marker;
-                            //this.setActiveIcon(marker);
-                            let passArgs = [this.activeMarker];
-                            this.activeMode = "marker";
-                            this.$emit("activate-toolbar", passArgs);
+                            this.$store.dispatch('changeActiveMarker', marker);
+                            this.$store.dispatch('changeActiveMode', "marker");
                        }
                     }
                 }
                 else {
-                    this.activeMarker = marker;
-                    //this.setActiveIcon(marker);
-                    let passArgs = [this.activeMarker];
-                    this.activeMode = "marker";
-                    this.$emit("activate-toolbar", passArgs);
+                    this.$store.dispatch('changeActiveMarker', marker);
+                    this.$store.dispatch('changeActiveMode', "marker");
                 }
             },
             nextUniqueId () {
@@ -361,11 +311,11 @@
 
                     newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"]};
                     console.log(newMarker);
-                    this.markers.push(newMarker);
+                    this.$store.dispatch('addToMarkers', newMarker);
+
                     console.log(this.markers);
                     console.log(this.$refs);
                     console.log("marker" + newMarker.label);
-                    // let newRef = ("marker" + newMarker.label).toString();
 
                     let markLength = this.markers.length;
 
@@ -375,18 +325,15 @@
                     console.log(this.lineSegments);
 
                     //change active marker to the one created
-                    this.activeMarker = this.markers[markLength-1];
-                    let passArgs = [this.activeMarker, this.markers, this.lineSegments];
-                    this.activeMode = "marker";
-                    this.$emit("activate-toolbar", passArgs);
+                    this.$store.dispatch('changeActiveMarker', this.markers[markLength-1]);
+                    this.$store.dispatch('changeActiveMode', "marker");
                 }
             },
             addNewSegment(marker1, marker2) {
                 console.log(marker1);
                 console.log(marker2);
                 let newLineObject = {pt1: marker1.label, pt2: marker2.label, coord: [[marker1.lat, marker1.lng], [marker2.lat, marker2.lng]]};
-
-                this.lineSegments.push(newLineObject);                
+                this.$store.dispatch('addToLineSegments', newLineObject);            
             },
             removeMarker(index) {
                 this.markers.splice(index, 1);
@@ -405,38 +352,49 @@
                 console.log(prevCoord);
                 this.prevMarkerCoord = prevCoord;
 
-                this.activeMarker = this.getMarkerFromCoords(prevCoord);
-                let passArgs = [this.activeMarker, this.markers, this.lineSegments];
-                this.activeMode = "marker";
-                this.$emit("activate-toolbar", passArgs);
+                this.$store.dispatch('changeActiveMarker', this.getMarkerFromCoords(prevCoord));
+                this.$store.dispatch('changeActiveMode', "marker");
+                console.log(this.activeMarker);
             },
             //set the new coordinates into the lineSegments array
             dragEndHandler(e) {
                 let newCoordinates = [e.target._latlng.lat, e.target._latlng.lng];
                 let newLineSegments = this.lineSegments;
-                //let newLineCoord = [];
-                //let newLineSegment = {};
+                console.log(this.lineSegments);
+                let toChangeLineSegment = {};
+                let payload = {};
+
                 console.log(newCoordinates);
 
-                for(let i in newLineSegments) {
+                for(let i = 0; i < newLineSegments.length; ++i) {
+                    toChangeLineSegment = this.lineSegments[i];
                     if(this.activeMarker.label.toString() === newLineSegments[i].pt1.toString()) {
-                        console.log("Changed");
-                        this.$set(this.lineSegments[i].coord, 0, newCoordinates);
+                        payload = {
+                            coordIndex: 0
+                            ,newCoord: newCoordinates
+                            ,lineSegment: toChangeLineSegment
+                        };
+                        this.$store.dispatch('updateLineByIndexCoord', payload);
                     }
                     else if(this.activeMarker.label.toString() === newLineSegments[i].pt2.toString()) {
-                        console.log("Changed");
-                        this.$set(this.lineSegments[i].coord, 1, newCoordinates);
+                        payload = {
+                            coordIndex: 1
+                            ,newCoord: newCoordinates
+                            ,lineSegment: toChangeLineSegment
+                        };
+                        this.$store.dispatch('updateLineByIndexCoord', payload);
                     }
                 }
 
                 console.log(this.lineSegments);
-                //this.lineSegments = newLineSegments;
-                for(let i = 0; i < this.markers.length; ++i) {
-                    if(this.markers[i].label === this.activeMarker.label) {
-                        this.$set(this.markers[i], "lat", newCoordinates[0]);
-                        this.$set(this.markers[i], "lng", newCoordinates[1]);
-                    }
+
+                payload = {
+                    newLat: newCoordinates[0]
+                    ,newLng: newCoordinates[1]
+                    ,marker: this.activeMarker
                 }
+                this.$store.dispatch('updateMarkers', payload);
+
             },
         }
     }

@@ -10,7 +10,6 @@
 
             <v-spacer></v-spacer>
             <SchoolMapExport 
-                @pass-mode="passMode($event)"
                 :markers="markers" 
                 :lineSegments="lineSegments" 
                 :additionMode="additionMode"    
@@ -51,9 +50,6 @@
                 console.log(newMapArgs);
                 this.$emit("on-import-map", newMapArgs);
             },
-            passMode(mode) {
-                this.$emit("pass-mode", mode);
-            }
         }),
         methods: {
 
