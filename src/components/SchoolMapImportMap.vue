@@ -53,6 +53,17 @@
         prop: {
 
         },
+        computed: {
+            mapBounds() {
+                return this.$store.state.mapBounds;
+            },
+            mapImageUrl() {
+                return this.$store.state.mapImageUrl;
+            },
+            mapImageName() {
+                return this.$store.state.mapImageName;
+            }
+        },
         data: () => ({
             dialog: false,
             currentFile: []
@@ -60,22 +71,21 @@
         methods: {
             handleImportMap() {
                 let file = this.currentFile;
-                let passArgs = [];
+                //let passArgs = [];
 
                 console.log(file);
                 let imageURL = URL.createObjectURL(file);
                 
                 let img = new Image();
                 img.onload = () => {
-                    //console.log(img.width + " " + img.height);
-                    passArgs[0] = imageURL;
-                    passArgs[1] = img.width;
-                    passArgs[2] = img.height;
-                    passArgs[3] = file.name;
-                    this.$emit("on-import-map", passArgs);  
+                    console.log(img.width + " " + img.height);
+
+                    this.$store.dispatch('changeMapImageUrl', imageURL);
+                    this.$store.dispatch('changeMapBounds', [img.height, img.width]);
+                    this.$store.dispatch('changeMapImageName', file.name);
+                    this.$root.$refs.Map.clearMarkers();
                 }
                 img.src = imageURL;
-                
                 
                 this.currentFile = [];
 

@@ -98,44 +98,13 @@
                 <span v-else-if="activeMode === 'lineSegment'">
                     Line Segment: {{activeMarker.pt1}} to {{activeMarker.pt2}}
                 </span>
+                <span v-else>
+                
+                </span>
             </v-toolbar-title>
             
             <v-spacer></v-spacer>
             <span v-if="activeMode === 'marker'" class="outer">
-                <v-select
-                    :items="markers"
-                    v-model="currentSelection.label"
-                    item-text="label"
-                    item-value="label"
-                    class="inner"
-                    label="Lines Connected To"
-                    outlined
-                ></v-select>
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn 
-                            class="inner"
-                            icon
-                            v-bind="attrs"
-                            v-on="on" 
-                            @click="handleClickAddLine()">
-                    <v-icon>mdi-chart-timeline-variant</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Add New Line</span>
-                </v-tooltip>
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn 
-                            class="inner"
-                            icon
-                            v-bind="attrs"
-                            v-on="on" >
-                            <v-icon>mdi-pencil</v-icon>
-                        </v-btn>
-                    </template>
-                    <span>Edit</span>
-                </v-tooltip>
                 <v-tooltip top>
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn 

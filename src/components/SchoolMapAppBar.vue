@@ -9,21 +9,13 @@
             <v-toolbar-title>学校の地図</v-toolbar-title>
 
             <v-spacer></v-spacer>
-            <SchoolMapExport 
-                :markers="markers" 
-                :lineSegments="lineSegments" 
-                :additionMode="additionMode"    
-            />
-            <SchoolMapImport @on-import-json="importedJson($event)" />
-            <SchoolMapImportMap @on-import-map="importedMap($event)" />
+                <SchoolMapExport class="right-buttons" />
+                <SchoolMapImport @on-import-json="importedJson($event)" class="right-buttons" />
+                <SchoolMapImportMap class="right-buttons" />
             
-            <v-btn icon>
-                <v-icon>mdi-heart</v-icon>
-            </v-btn>
-
-            <v-btn icon>
-                <v-icon>mdi-magnify</v-icon>
-            </v-btn>
+                <v-btn icon class="right-buttons">
+                    <v-icon>mdi-heart</v-icon>
+                </v-btn>
     </v-app-bar>
 </template>
 
@@ -37,18 +29,12 @@
             SchoolMapImport, SchoolMapExport, SchoolMapImportMap
         },
         props: {
-            markers: Array
-            ,lineSegments: Array
-            ,additionMode: String
+
         },
         data: () => ({
             importedJson(coordJson) {
                 console.log(coordJson);
                 this.$emit("on-import-json", coordJson);
-            },
-            importedMap(newMapArgs) {
-                console.log(newMapArgs);
-                this.$emit("on-import-map", newMapArgs);
             },
         }),
         methods: {
@@ -56,3 +42,8 @@
         },
     }
 </script>
+<style scoped>
+    .right-buttons {
+        padding: 1vh;
+    }
+</style>

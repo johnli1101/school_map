@@ -5,60 +5,87 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
-        additionMode: "",
-        activeMarker: {},
-        activeMode: "",
-        markers: [],
-        lineSegments: []
+        additionMode: "",                                   //controls the mode of adding a new marker or line segment
+        activeMarker: {},                                   //current active marker OR line segment
+        activeMode: "",                                     //current active mode can be line segment or marker
+        markers: [],                                        //marker list for the map
+        lineSegments: [],                                   //line segment list the map
+        importedCoordJson: {},                              //imported Json
+        mapImageURL: require("./doushishaRyokanBldg.jpg"),  //image for the map. defaulted to doushisha map
+        mapBounds: [700, 1200],                             //map size (in pixels). defaulted to dousisha map size
+        mapImageName: ""                                    //name of the fileName
     },
     mutations: {
-        changeMode (state, mode) {
+        // ----- all mode mutations ----
+        changeMode(state, mode) {
             state.additionMode = mode;
         },
-        changeActiveMarker (state, marker) {
+        changeActiveMarker(state, marker) {
             state.activeMarker = marker;
         },
-        changeActiveMode (state, mode) {
+        changeActiveMode(state, mode) {
             state.activeMode = mode;
         },
+        // ----- all marker mutations -------
         updateMarkers (state, payload) {
             let markerIndex = state.markers.indexOf(payload.marker);
             Vue.set(state.markers[markerIndex], "lat", payload.newLat);
             Vue.set(state.markers[markerIndex], "lng", payload.newLng);
         },
-        addToMarkers (state, newMarker) {
-            state.markers.push(newMarker);
-        },
-        deleteFromMarkersByIndex (state, markerIndexToDelete) {
-            state.markers.splice(markerIndexToDelete, 1);
-        },
-        addToLineSegments (state, lineSegment) {
-            state.lineSegments.push(lineSegment);
-        },
-        updateLineByIndexCoord (state, payload) {
-            let toChangeIndex = state.lineSegments.indexOf(payload.lineSegment);
-            Vue.set(state.lineSegments[toChangeIndex].coord, payload.coordIndex, payload.newCoord);
-        },
-        deleteFromLineSegmentsByIndex (state, lineIndexToDelete) {
-            state.lineSegments.splice(lineIndexToDelete, 1);
-        },
-        eraseAllMarkers (state) {
-            state.markers = [];
-        },
-        eraseAllLineSegments (state) {
-            state.lineSegments = [];
-        },
-        setNewMarkers (state, newMarkers) {
+        setNewMarkers(state, newMarkers) {
             console.log(state.markers);
             console.log(newMarkers);
             state.markers = newMarkers;
             console.log(state.markers);
         },
-        setNewLineSegments (state, newLineSegments) {
+        addToMarkers(state, newMarker) {
+            state.markers.push(newMarker);
+        },
+        deleteFromMarkersByIndex(state, markerIndexToDelete) {
+            state.markers.splice(markerIndexToDelete, 1);
+        },
+        eraseAllMarkers(state) {
+            state.markers = [];
+        },
+        // -------- all line segment mutations ----------
+        addToLineSegments(state, lineSegment) {
+            state.lineSegments.push(lineSegment);
+        },
+        updateLineByIndexCoord(state, payload) {
+            let toChangeIndex = state.lineSegments.indexOf(payload.lineSegment);
+            Vue.set(state.lineSegments[toChangeIndex].coord, payload.coordIndex, payload.newCoord);
+        },
+        setNewLineSegments(state, newLineSegments) {
             state.lineSegments = newLineSegments;
+        },
+        deleteFromLineSegmentsByIndex(state, lineIndexToDelete) {
+            state.lineSegments.splice(lineIndexToDelete, 1);
+        },
+        eraseAllLineSegments(state) {
+            state.lineSegments = [];
+        },
+        // -------- all map mutations -------------
+        changeMapBounds(state, newBounds) {
+            state.mapBounds = newBounds;
+        },
+        changeMapImageUrl(state, newUrl) {
+            state.mapImageURL = newUrl;
+        },
+        changeMapImageName(state, newName) {
+            state.mapImageName = newName;
         }
     },
     actions: {
+        changeMapBounds (context, newBounds) {
+            context.commit('changeMapBounds', newBounds);
+        },
+        changeMapImageUrl(context, newUrl) {
+            context.commit('changeMapImageUrl', newUrl);
+        },
+        changeMapImageName(context, newName) {
+            context.commit('changeMapImageName', newName);
+        },
+        //changes the mode of the adding line or marker
         changeMode(context, mode) {
             console.log(mode +  " " + context.state.additionMode);
             if(context.state.additionMode === mode) {
@@ -81,9 +108,11 @@ export default new Vuex.Store({
                 }
             }
         },
+        //changes the active marker or to line segment
         changeActiveMarker(context, marker) {
             context.commit('changeActiveMarker', marker);
         },
+        //changes the mode of either line segment or marker mode
         changeActiveMode(context, mode) {
             context.commit('changeActiveMode', mode);
         },
@@ -96,6 +125,7 @@ export default new Vuex.Store({
         updateMarkers(context, payload) {
             context.commit('updateMarkers', payload);
         },
+        //adds a new marker to the list
         addToMarkers(context, newMarker) {
             context.commit('addToMarkers', newMarker);
         },
@@ -114,6 +144,7 @@ export default new Vuex.Store({
                 context.commit('changeActiveMarker', {});
             }
         },
+        //adds a new line segment to the list
         addToLineSegments(context, lineToAdd) {
             console.log(lineToAdd);
             context.commit('addToLineSegments', lineToAdd);
@@ -127,17 +158,21 @@ export default new Vuex.Store({
         updateLineByIndexCoord(context, payload) {
             context.commit('updateLineByIndexCoord', payload);
         },
+        //deletes line segment
         deleteFromLineSegments(context, lineToDelete) {
             let toDeleteLineIndex = context.state.lineSegments.indexOf(lineToDelete);
             context.commit('deleteFromLineSegmentsByIndex', toDeleteLineIndex);
         },
+        //clears both markers and line segments lists
         clearAllMarkersAndSegments(context) {
             context.commit('eraseAllLineSegments');
             context.commit('eraseAllMarkers');
         },
+        //sets a completely new marker list
         setNewMarkersList(context, newMarkers) {
             context.commit('setNewMarkers', newMarkers);
         },
+        //sets a completely new line segments list
         setNewLineSegmentsList(context, newLineSegments) {
             context.commit('setNewLineSegments', newLineSegments);
         }

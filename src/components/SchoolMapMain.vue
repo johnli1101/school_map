@@ -10,7 +10,7 @@
         >
         <l-image-overlay
             :url="mapImageURL"
-            :bounds="[[0, 0], this.mapBounds]"
+            :bounds="[[0, 0], mapBounds]"
         />
         <l-marker
             v-for="marker in markers"
@@ -69,8 +69,8 @@
             LTooltip
         },
         props: {
-            mapImageURL: String
-            ,mapBounds: Array
+            // mapImageURL: String
+            // ,mapBounds: Array
         },
         computed: {
             additionMode() {
@@ -87,6 +87,15 @@
             },
             lineSegments() {
                 return this.$store.state.lineSegments;
+            },
+            mapBounds() {
+                return this.$store.state.mapBounds;
+            },
+            mapImageURL() {
+                return this.$store.state.mapImageURL;
+            },
+            mapImageName() {
+                return this.$store.state.mapImageName;
             }
         },
         data: () => ({
