@@ -3,7 +3,7 @@
         <v-btn
             depressed
             color="primary"
-            @click="dialog = true"
+            @click="dialog = true;"
         >
             Import Map
         </v-btn>
@@ -50,6 +50,12 @@
 <script>
 
     export default {
+        watch: {
+            dialog: function(val) {
+                //if dialog is open then we want to switch off the keylisten
+                this.$store.dispatch('changeKeyListen', !val);
+            }
+        },
         prop: {
 
         },
@@ -66,14 +72,21 @@
         },
         data: () => ({
             dialog: false,
-            currentFile: []
+            currentFile: [],
+            //filePath: ""
         }),
         methods: {
             handleImportMap() {
                 let file = this.currentFile;
                 //let passArgs = [];
 
+                // const reader = new FileReader();
+                // reader.addEventListener('load', e => this.filePath = e.target.result);
+                // reader.addEventListener('error', e => this.filePath = this.errorImage);
+                // reader.readAsDataURL(file);
+
                 console.log(file);
+
                 let imageURL = URL.createObjectURL(file);
                 
                 let img = new Image();

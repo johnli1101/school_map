@@ -13,7 +13,9 @@ export default new Vuex.Store({
         importedCoordJson: {},                              //imported Json
         mapImageURL: require("./doushishaRyokanBldg.jpg"),  //image for the map. defaulted to doushisha map
         mapBounds: [700, 1200],                             //map size (in pixels). defaulted to dousisha map size
-        mapImageName: ""                                    //name of the fileName
+        mapImageName: "",                                   //name of the fileName
+        keyListen: true,                                    //boolean whether to listen for key bindings or not (usually should turn off for dialogs)
+        loading: false,                                     //for controlling loading screen  
     },
     mutations: {
         // ----- all mode mutations ----
@@ -47,6 +49,10 @@ export default new Vuex.Store({
         eraseAllMarkers(state) {
             state.markers = [];
         },
+        updateMarkerPicture(state, payload) {
+            Vue.set(state.markers[payload.index], "picture", payload.picture);
+            console.log(state.markers[payload.index]);
+        },
         // -------- all line segment mutations ----------
         addToLineSegments(state, lineSegment) {
             state.lineSegments.push(lineSegment);
@@ -73,9 +79,17 @@ export default new Vuex.Store({
         },
         changeMapImageName(state, newName) {
             state.mapImageName = newName;
+        },
+        // ----------- misc ----------------
+        changeKeyListen(state, newState) {
+            state.keyListen = newState;
+        },
+        changeLoading(state, isLoading) {
+            state.loading = isLoading;
         }
     },
     actions: {
+        // ----  for changing map bounds, map image url, and map image name ----
         changeMapBounds (context, newBounds) {
             context.commit('changeMapBounds', newBounds);
         },
@@ -144,6 +158,17 @@ export default new Vuex.Store({
                 context.commit('changeActiveMarker', {});
             }
         },
+        //payload requirement:
+        //  picture: "picture.jpg" (picture from THETA camera)
+        //  marker: { ... } (marker object to update)
+        updateMarkerPicture(context, payload) {
+            let markerIndex = context.state.markers.indexOf(payload.marker);
+            let newPayload = {
+                    index: markerIndex
+                    ,picture: payload.picture
+                };
+            context.commit('updateMarkerPicture', newPayload);
+        },
         //adds a new line segment to the list
         addToLineSegments(context, lineToAdd) {
             console.log(lineToAdd);
@@ -175,7 +200,13 @@ export default new Vuex.Store({
         //sets a completely new line segments list
         setNewLineSegmentsList(context, newLineSegments) {
             context.commit('setNewLineSegments', newLineSegments);
+        },
+        changeKeyListen(context, newState) {
+            context.commit('changeKeyListen', newState);
+        },
+        changeLoading(context, newState) {
+            console.log(newState);
+            context.commit('changeLoading', newState);
         }
-
     }
   })

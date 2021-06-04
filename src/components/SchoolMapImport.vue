@@ -50,6 +50,12 @@
 <script>
 
     export default {
+        watch: {
+            dialog: function(val) {
+                //if dialog is open then we want to switch off the keylisten
+                this.$store.dispatch('changeKeyListen', !val);
+            }
+        },
         prop: {
 
         },

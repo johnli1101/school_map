@@ -1,5 +1,6 @@
 <template>
     <div>
+        <SchoolMapOverlay />
         <SchoolMapAppBar 
             @on-import-json="importedJson($event)" 
         />
@@ -12,10 +13,11 @@
     import SchoolMapMain from './SchoolMapMain';
     import SchoolMapAppBar from './SchoolMapAppBar';
     import SchoolMapMarkerToolbar from './SchoolMapMarkerToolbar';
+    import SchoolMapOverlay from './SchoolMapOverlay';
 
     export default {
         components: {
-            SchoolMapMain, SchoolMapAppBar, SchoolMapMarkerToolbar
+            SchoolMapMain, SchoolMapAppBar, SchoolMapMarkerToolbar, SchoolMapOverlay
         },
         data: () => ({
             importedCoordJson: {},

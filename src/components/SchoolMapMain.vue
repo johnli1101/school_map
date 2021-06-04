@@ -57,6 +57,7 @@
     iconUrl: require('leaflet/dist/images/marker-icon.png'),
     shadowUrl: require('leaflet/dist/images/marker-shadow.png'),
     });
+    // import FileSaver from 'file-saver';
     import L from 'leaflet';
     import { LMap, LImageOverlay, LMarker, LPolyline, LTooltip } from "vue2-leaflet";
 
@@ -66,7 +67,8 @@
             LImageOverlay,
             LMarker,
             LPolyline,
-            LTooltip
+            LTooltip,
+            //FileSaver
         },
         props: {
             // mapImageURL: String
@@ -96,6 +98,9 @@
             },
             mapImageName() {
                 return this.$store.state.mapImageName;
+            },
+            keyListen() {
+                return this.$store.state.keyListen;
             }
         },
         data: () => ({
@@ -107,36 +112,104 @@
                 permanent: true
             },
             prevMarkerCoord: [],
+            testImage: ""
         }),
         created() {
             this.$root.$refs.Map = this;
 
+            this.startSession();
+
             //handle button presses
             window.addEventListener('keydown', (e) => {
-                switch(e.key) {
-                    case "d":
-                        if(this.activeMode === "marker" && this.markers.length > 0) {
-                            //handle delete function
-                            this.$root.$refs.Toolbar.handleClickDelete()
-                        }
-                        else if(this.activeMode === "lineSegment" && this.lineSegments.length > 0) {
-                            this.$root.$refs.Toolbar.handleClickLineDelete()
-                        }
-                        break;
-                    case "q":
-                        this.$store.dispatch('changeMode', "addMarker");
-                        break;
-                    case "w":
-                        this.$store.dispatch('changeMode', "addConnectedMarker");
-                        break;
-                    case "e":
-                        this.$store.dispatch('changeMode', "lineAdd");
+                if(this.keyListen) {
+                    //console.log(this.keyListen);
+                    switch(e.key) {
+                        case "d":
+                            if(this.activeMode === "marker" && this.markers.length > 0) {
+                                //handle delete function
+                                this.$root.$refs.Toolbar.handleClickDelete()
+                            }
+                            else if(this.activeMode === "lineSegment" && this.lineSegments.length > 0) {
+                                this.$root.$refs.Toolbar.handleClickLineDelete()
+                            }
+                            break;
+                        case "q":
+                            this.$store.dispatch('changeMode', "addMarker");
+                            break;
+                        case "w":
+                            this.$store.dispatch('changeMode', "addConnectedMarker");
+                            break;
+                        case "e":
+                            this.$store.dispatch('changeMode', "lineAdd");
 
-                        break;
+                            break;
+                    }
                 }
             });
         },
         methods: {
+            startSession() {
+                console.log("hello world");
+                // var args = {
+                //     data: { "name": "camera.takePicture" },
+                //     headers: { "Content-Type": "application/json" }
+                // };
+                this.axios.get("http://localhost:5000/test").then(response => {
+                    console.log("Hello");
+                    console.log(response);
+                });
+                // this.axios.post("http://localhost:5000/takePicture").then(response => {
+                //     console.log("Hello");
+                //     console.log(response);
+                //     this.axios.get("http://localhost:5000/retrievePicture").then(response2 => {
+                //         console.log("Hello2");
+                //         console.log(response2);
+                //         this.testImage = response2;
+                //     });
+                // });
+
+                // this.axios.post("http://localhost:5000/pictureStatus").then(response => {
+                //     console.log("Hello");
+                //     console.log(response);
+                // });
+
+                // this.axios.get("http://localhost:5000/retrievePicture").then(response2 => {
+                //     console.log("Hello2");
+                //     console.log(JSON.stringify(response2["data"]));
+                //     this.testImage = response2["data"];
+                //     console.log(this.testImage);
+                //     //FileSaver.saveAs(this.testImage, "image.jpg");
+                //     // Buffer.from(response2.data, "binary").toString("base64")
+
+                //     // var img = new Image();
+                //     // img.src = "data:image/jpeg;base64, " + base64;
+                //     // console.log(img);
+                //     // var fileURL = window.URL.createObjectURL(new Blob([this.testImage]));
+                //     // var fileLink = document.createElement('a');
+                
+                //     // fileLink.href = fileURL;
+                //     // fileLink.setAttribute('download', 'file.jpg');
+                //     // document.body.appendChild(fileLink);
+                //     // console.log(fileLink);
+                
+                //     // fileLink.click();
+                // });
+
+                console.log("Hello");
+
+            },
+            // async downloadImage(url) {
+            //     var base64 = await this.axios
+            //         .get(url, {
+            //         responseType: "arraybuffer"
+            //         })
+            //         .then(response =>
+            //         Buffer.from(response.data, "binary").toString("base64")
+            //         );
+            //     var img = new Image();
+            //     img.src = "data:image/jpeg;base64, " + base64;
+            //     return img;
+            // },
             polylineColor(line) {
                 if(this.activeMarker.pt1 === line.pt1
                     && this.activeMarker.pt2 === line.pt2) {
@@ -318,7 +391,7 @@
                     let newMarkerName = this.nextUniqueId();
                     console.log(newMarkerName);
 
-                    newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"]};
+                    newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"], picture: ""};
                     console.log(newMarker);
                     this.$store.dispatch('addToMarkers', newMarker);
 
