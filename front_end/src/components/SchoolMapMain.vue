@@ -394,10 +394,10 @@
                     this.$store.dispatch('changeActiveMarker', this.markers[markLength-1]);
                     this.$store.dispatch('changeActiveMode', "marker");
                 }
-                else {
-                    this.$store.dispatch('changeActiveMarker', "");
-                    this.$store.dispatch('changeActiveMode', "");
-                }
+                // else {
+                //     this.$store.dispatch('changeActiveMarker', "");
+                //     this.$store.dispatch('changeActiveMode', "");
+                // }
             },
             addNewSegment(marker1, marker2) {
                 console.log(marker1);
