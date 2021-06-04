@@ -395,6 +395,7 @@
                     this.$store.dispatch('changeActiveMode', "marker");
                 }
                 else {
+                    this.$store.dispatch('changeActiveMarker', "");
                     this.$store.dispatch('changeActiveMode', "");
                 }
             },
