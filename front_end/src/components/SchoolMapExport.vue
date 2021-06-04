@@ -205,7 +205,7 @@ export default {
 
                 //gather all the line segments
                 for(let i = 0; i < this.lineSegments.length; ++i) {
-                    newCoordJson["line_segments"][(i+1)] = [
+                    newCoordJson["line_segments"][tempMarkerObject[this.lineSegments[i].pt1]] = [
                                 tempMarkerObject[this.lineSegments[i].pt1]
                                 ,tempMarkerObject[this.lineSegments[i].pt2]
                             ];
