@@ -155,7 +155,7 @@
                                         <v-btn
                                             color="primary"
                                             text
-                                            @click="handleRetakePhoto()"
+                                            @click="handleRetakePhotoFromImage()"
                                         >
                                             Retake Photo
                                         </v-btn>
@@ -180,80 +180,115 @@
                         <span>Check Marker Image</span>
                     </v-tooltip>
                 </span>
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn 
-                            class="inner"
-                            icon
-                            v-bind="attrs"
-                            v-on="on" 
-                            @click="handleClickCamera()">
-                            <v-icon>mdi-camera</v-icon>
-                        </v-btn>
-                        <v-dialog
-                            v-model="dialogCamera"
-                            width="150vh"
-                            height="150vh"
-                            @keydown.esc="dialogCamera = false"
-                        >
-                            <v-card>
-                                <v-card-title class="headline grey lighten-2">
-                                    Assign this photo to this Marker: {{activeMarker.label}} ?
-                                </v-card-title>
-                                        <v-img
-                                            class="cameraPicture"
-                                            :src="currentPicture"
-                                            lazy-src=""
-                                            max-width="1200"
-                                            max-height="700"
-                                        >
-                                            <template v-slot:placeholder>
-                                                <v-row
-                                                    class="fill-height ma-0"
-                                                    align="center"
-                                                    justify="center"
-                                                >
-                                                <v-progress-circular
-                                                    :size="70"
-                                                    :width="7"
-                                                    color="purple"
-                                                    indeterminate
-                                                >
-                                                </v-progress-circular>
-                                                </v-row>
-                                            </template>
-                                        </v-img>
-                                <v-divider></v-divider>
+                <span v-else>
+                    <v-tooltip top>
+                        <template v-slot:activator="{ on, attrs }">
+                            <v-btn 
+                                class="inner"
+                                icon
+                                v-bind="attrs"
+                                v-on="on" 
+                                @click="handleCameraConfirm()">
+                                <v-icon>mdi-camera</v-icon>
+                            </v-btn>
+                            <v-dialog
+                                v-model="dialogCameraConfirm"
+                                width="50vh"
+                                height="100vh"
+                                @keydown.enter="handleCameraConfirmTakePicture()"
+                                @keydown.esc="dialogCameraConfirm = false"
+                            >
+                                <v-card>
+                                    <v-card-title class="headline grey lighten-2">
+                                        Do you want to take a picture?
+                                    </v-card-title>
 
-                                <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                        color="primary"
-                                        text
-                                        @click="handleKeepPhoto()"
-                                    >
-                                        Keep this photo
-                                    </v-btn>
-                                    <v-btn
-                                        color="primary"
-                                        text
-                                        @click="handleRetakePhoto()"
-                                    >
-                                        Retake Photo
-                                    </v-btn>
-                                    <v-btn
-                                        color="primary"
-                                        text
-                                        @click="dialogCamera = false"
-                                    >
-                                        Cancel
-                                    </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-dialog>
-                    </template>
-                    <span>Take a Picture</span>
-                </v-tooltip>
+                                    <v-divider></v-divider>
+
+                                    <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn
+                                            color="primary"
+                                            text
+                                            @click="handleCameraConfirmTakePicture()"
+                                        >
+                                            Yes
+                                        </v-btn>
+                                        <v-btn
+                                            color="primary"
+                                            text
+                                            @click="dialogCameraConfirm = false"
+                                        >
+                                            Cancel
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-dialog>
+                            <v-dialog
+                                v-model="dialogCamera"
+                                width="150vh"
+                                height="150vh"
+                                persistent
+                            >
+                                <v-card>
+                                    <v-card-title class="headline grey lighten-2">
+                                        Assign this photo to this Marker: {{activeMarker.label}} ?
+                                    </v-card-title>
+                                            <v-img
+                                                class="cameraPicture"
+                                                :src="currentPicture"
+                                                lazy-src=""
+                                                max-width="1200"
+                                                max-height="700"
+                                            >
+                                                <template v-slot:placeholder>
+                                                    <v-row
+                                                        class="fill-height ma-0"
+                                                        align="center"
+                                                        justify="center"
+                                                    >
+                                                    <v-progress-circular
+                                                        :size="70"
+                                                        :width="7"
+                                                        color="purple"
+                                                        indeterminate
+                                                    >
+                                                    </v-progress-circular>
+                                                    </v-row>
+                                                </template>
+                                            </v-img>
+                                    <v-divider></v-divider>
+
+                                    <v-card-actions>
+                                        <v-spacer></v-spacer>
+                                        <v-btn
+                                            color="primary"
+                                            text
+                                            @click="handleKeepPhoto()"
+                                        >
+                                            Keep this photo
+                                        </v-btn>
+                                        <v-btn
+                                            color="primary"
+                                            text
+                                            @click="handleRetakePhoto()"
+                                        >
+                                            Retake Photo
+                                        </v-btn>
+                                        <v-btn
+                                            color="primary"
+                                            text
+                                            @click="dialogCamera = false"
+                                        >
+                                            Cancel
+                                        </v-btn>
+                                    </v-card-actions>
+                                </v-card>
+                            </v-dialog>
+                        </template>
+                        <span>Take a Picture</span>
+                    </v-tooltip>
+                </span>
                 <v-tooltip top>
                     <template v-slot:activator="{ on, attrs }">
                         <v-btn 
@@ -379,6 +414,9 @@
             },
             dialogCameraImage: function(val) {
                 this.$store.dispatch('changeKeyListen', !val);
+            },
+            dialogCameraConfirm: function(val) {
+                this.$store.dispatch('changeKeyListen', !val);
             }
         },
         computed: {
@@ -403,10 +441,21 @@
             ,dialogLine: false
             ,dialogCamera: false
             ,dialogCameraImage: false
+            ,dialogCameraConfirm: false
             ,currentSelection: {label: ""}
             ,currentPicture: ""
         }),
         methods: {
+            handleCameraImageOpen() {
+                this.dialogCameraImage = true;
+            },
+            handleCameraConfirm() {
+                this.dialogCameraConfirm = true;
+            },
+            handleCameraConfirmTakePicture() {
+                this.dialogCameraConfirm = false;
+                this.handleClickCamera();
+            },
             handleClickDelete() {
                 this.dialog = true;
             },
@@ -446,13 +495,12 @@
                 //     });
                 // console.log('downloading', url);
 
-                let filename = this.activeMarker.picture.substr(this.activeMarker.picture.lastIndexOf('/'));
+                let filename = this.activeMarker.picture.substr(this.activeMarker.picture.lastIndexOf('/') + 1);
                 console.log(filename);
 
                 this.$store.dispatch('changeLoading', true);
-                // let response = await axios.post("http://localhost:5000/downloadPhoto2", {fileUrl: this.activeMarker.picture}, {responseType: "blob"});
-                let response = await axios.post("http://localhost:5000/downloadPhoto2", {fileUrl: this.activeMarker.picture}, {responseType: "blob"});
-                this.$store.dispatch('changeLoading', false);
+
+                let response = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: this.activeMarker.picture}, {responseType: "blob"});
 
                 console.log(response);
                 var fileURL = window.URL.createObjectURL(new Blob([response.data]));
@@ -463,7 +511,13 @@
                 document.body.appendChild(fileLink);
 
                 fileLink.click();
+                this.$store.dispatch('changeLoading', false);
                 
+            },
+            async handleRetakePhotoFromImage() {
+                this.dialogCameraImage = false;
+                await this.takePicture();
+                this.dialogCamera = true;
             },
             async handleRetakePhoto() {
                 this.dialogCamera = false;

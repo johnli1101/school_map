@@ -49,13 +49,6 @@
                     <v-btn
                         color="primary"
                         text
-                        @click="handleZipImages()"
-                    >
-                        Zip Test
-                    </v-btn>
-                    <v-btn
-                        color="primary"
-                        text
                         @click="dialog = false"
                     >
                         Cancel
@@ -112,7 +105,7 @@ export default {
         
     },
     methods: {
-        errorCheck() {
+        errorCheck(errorChecks) {
             this.errorArray = [];
             if(!this.exportFilename) {
                 this.errorArray.push("Name cannot be empty");
@@ -120,6 +113,20 @@ export default {
             console.log(this.errorArray.length > 0);
             console.log(this.errorArray);
             console.log(this.exportFilename);
+
+            //check for image if "image"
+            if(errorChecks === "picture") {
+                let markersWOImage = [];
+                for(let i = 0; i < this.markers.length; ++i) {
+                    if(!this.markers[i].picture) {
+                        markersWOImage.push(this.markers[i].label);
+                    }
+                }
+                if(markersWOImage.length > 0) {
+                    this.errorArray.push("The following markers are still missing images: " + markersWOImage.join(', '));
+                }
+            }
+
             return (this.errorArray.length > 0) ? true : false;
         },
         async urlToPromise(url) {
@@ -178,17 +185,17 @@ export default {
             // });
         },
         handleExportForUser() {
-            if(!this.errorCheck()) {
+            if(!this.errorCheck("picture")) {
                 console.log(this.markers);
                 console.log(this.lineSegments);
 
-                let newCoordJson = {markers: [], line_segments: {}};
+                let newCoordJson = {markers: {}, line_segments: {}};
                 let tempMarkerObject = {};
                 let filename = "";
 
                 //gather all the marker points
                 for(let i = 0; i < this.markers.length; ++i) {
-                    filename = this.markers[i].picture.substr(this.markers[i].picture.lastIndexOf('/'));
+                    filename = this.markers[i].picture.substr(this.markers[i].picture.lastIndexOf('/') + 1);
                     newCoordJson["markers"][filename] = [
                                     this.markers[i].lat
                                     ,this.markers[i].lng
@@ -206,33 +213,49 @@ export default {
                 
                 console.log(newCoordJson);
                 
-                const data = JSON.stringify(newCoordJson, null, 2)
-
-                let zip = new JSZip();
-                let zipFilename = this.exportFilename;
-                //zip.folder(this.exportFilename).file('coordinates.json', data)
-                zip.file('coordinates.json', data);
-                zip.generateAsync({type:'blob'}) 
-                    .then(function(blob){ 
-                        FileSaver.saveAs(blob, zipFilename + ".zip"); 
-                    })
-                //this.exportJson(newCoordJson, this.exportFilename);
+                this.zipFiles(newCoordJson);
             }
+        },
+        async zipFiles(newCoordJson) {
+            this.$store.dispatch('changeLoading', true);
+            const data = JSON.stringify(newCoordJson, null, 2)
+            console.log(data);
+            
+            let zip = new JSZip();
+            let zipFilename = this.exportFilename;
+
+            //zip all the files
+            for(let i = 0; i < this.markers.length; ++i) {
+                let pictureFilename = this.markers[i].picture.substr(this.markers[i].picture.lastIndexOf('/') + 1);
+                console.log(pictureFilename);
+                console.log(this.markers[i].picture);
+                
+                //zip.folder(this.exportFilename).file('coordinates.json', data)
+                let pictureData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: this.markers[i].picture}, {responseType: "blob"});
+                zip.file(pictureFilename, new Blob([pictureData.data]));
+            }
+            //zip.file(pictureFilename, pictureData.data, {binary: true});
+            zip.file('coordinates.json', data);
+            zip.generateAsync({type:'blob'}) 
+                .then(function(blob){ 
+                    FileSaver.saveAs(blob, zipFilename + ".zip"); 
+                })
+            this.$store.dispatch('changeLoading', false);
         },
         handleExportForApp() {
             if(!this.errorCheck()) {
                 console.log(this.markers);
                 console.log(this.lineSegments);
 
-                let newCoordJson = {markers: [], line_segments: {}};
+                let newCoordJson = {markers: {}, line_segments: {}};
 
                 //gather all the marker points
                 for(let i = 0; i < this.markers.length; ++i) {
-                    newCoordJson["markers"].push({
-                            label: this.markers[i].label
+                    newCoordJson["markers"][this.markers[i].label] = {
+                            picture: ""
                             ,lat: this.markers[i].lat
                             ,lng: this.markers[i].lng
-                    })
+                    }
                 }
 
                 //gather all the line segments

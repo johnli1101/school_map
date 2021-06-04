@@ -9,13 +9,10 @@
             <v-toolbar-title>学校の地図</v-toolbar-title>
 
             <v-spacer></v-spacer>
-                <SchoolMapExport class="right-buttons" />
-                <SchoolMapImport @on-import-json="importedJson($event)" class="right-buttons" />
-                <SchoolMapImportMap class="right-buttons" />
+            <SchoolMapExport class="right-buttons" />
+            <SchoolMapImport @on-import-json="importedJson($event)" class="right-buttons" />
+            <SchoolMapImportMap class="right-buttons" />
             
-                <v-btn icon class="right-buttons">
-                    <v-icon>mdi-heart</v-icon>
-                </v-btn>
     </v-app-bar>
 </template>
 

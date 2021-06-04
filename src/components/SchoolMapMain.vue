@@ -17,6 +17,7 @@
             :key="marker.label"
             :lat-lng="marker"
             :ref="'marker-' + marker.label"
+            :icon="getIcon(marker)"
             :draggable="true"
             @dragstart="dragStartHandler"
             @dragend="dragEndHandler"
@@ -133,6 +134,18 @@
                                 this.$root.$refs.Toolbar.handleClickLineDelete()
                             }
                             break;
+                        case "c":
+                            if(this.activeMode === "marker" && !this.activeMarker.picture) {
+                                //handle delete function
+                                this.$root.$refs.Toolbar.handleCameraConfirm()
+                            }
+                            break;
+                        case "v":
+                            if(this.activeMode === "marker" && this.activeMarker.picture) {
+                                //handle delete function
+                                this.$root.$refs.Toolbar.handleCameraImageOpen()
+                            }
+                            break;
                         case "q":
                             this.$store.dispatch('changeMode', "addMarker");
                             break;
@@ -149,67 +162,27 @@
         },
         methods: {
             startSession() {
-                console.log("hello world");
-                // var args = {
-                //     data: { "name": "camera.takePicture" },
-                //     headers: { "Content-Type": "application/json" }
-                // };
                 this.axios.get("http://localhost:5000/test").then(response => {
                     console.log("Hello");
                     console.log(response);
                 });
-                // this.axios.post("http://localhost:5000/takePicture").then(response => {
-                //     console.log("Hello");
-                //     console.log(response);
-                //     this.axios.get("http://localhost:5000/retrievePicture").then(response2 => {
-                //         console.log("Hello2");
-                //         console.log(response2);
-                //         this.testImage = response2;
-                //     });
-                // });
-
-                // this.axios.post("http://localhost:5000/pictureStatus").then(response => {
-                //     console.log("Hello");
-                //     console.log(response);
-                // });
-
-                // this.axios.get("http://localhost:5000/retrievePicture").then(response2 => {
-                //     console.log("Hello2");
-                //     console.log(JSON.stringify(response2["data"]));
-                //     this.testImage = response2["data"];
-                //     console.log(this.testImage);
-                //     //FileSaver.saveAs(this.testImage, "image.jpg");
-                //     // Buffer.from(response2.data, "binary").toString("base64")
-
-                //     // var img = new Image();
-                //     // img.src = "data:image/jpeg;base64, " + base64;
-                //     // console.log(img);
-                //     // var fileURL = window.URL.createObjectURL(new Blob([this.testImage]));
-                //     // var fileLink = document.createElement('a');
-                
-                //     // fileLink.href = fileURL;
-                //     // fileLink.setAttribute('download', 'file.jpg');
-                //     // document.body.appendChild(fileLink);
-                //     // console.log(fileLink);
-                
-                //     // fileLink.click();
-                // });
-
-                console.log("Hello");
-
             },
-            // async downloadImage(url) {
-            //     var base64 = await this.axios
-            //         .get(url, {
-            //         responseType: "arraybuffer"
-            //         })
-            //         .then(response =>
-            //         Buffer.from(response.data, "binary").toString("base64")
-            //         );
-            //     var img = new Image();
-            //     img.src = "data:image/jpeg;base64, " + base64;
-            //     return img;
-            // },
+            getIcon(marker) {
+                if(marker.picture) {
+                    return L.icon({
+                        iconUrl: require("../assets/map_icon_filled.png"),
+                        iconSize: [37, 40],
+                        iconAnchor: [16, 37]
+                    })
+                }
+                else {
+                    return L.icon({
+                        iconUrl: require("../assets/map_icon_default.png"),
+                        iconSize: [37, 40],
+                        iconAnchor: [16, 37]
+                    })
+                }
+            },
             polylineColor(line) {
                 if(this.activeMarker.pt1 === line.pt1
                     && this.activeMarker.pt2 === line.pt2) {
@@ -231,13 +204,24 @@
                 let jsonMarkers = parsedCoord["markers"];
                 let jsonLineSegments = parsedCoord["line_segments"];
 
-                for(let i = 0; i < jsonMarkers.length; ++i) {
+                // for(let i = 0; i < jsonMarkers.length; ++i) {
+                //     newMarkers.push({
+                //             label: jsonMarkers[i].label
+                //             ,picture: jsonMarkers[i].picture
+                //             ,lat: jsonMarkers[i].lat
+                //             ,lng: jsonMarkers[i].lng
+                //     })
+                // }
+
+                for(let i in jsonMarkers) {
                     newMarkers.push({
-                            label: jsonMarkers[i].label
-                            ,lat: jsonMarkers[i].lat
-                            ,lng: jsonMarkers[i].lng
+                        label: i
+                        ,picture: jsonMarkers[i].picture
+                        ,lat: jsonMarkers[i].lat
+                        ,lng: jsonMarkers[i].lng
                     })
                 }
+
                 console.log(newMarkers);
 
                 let marker1 = {};
@@ -409,6 +393,9 @@
                     //change active marker to the one created
                     this.$store.dispatch('changeActiveMarker', this.markers[markLength-1]);
                     this.$store.dispatch('changeActiveMode', "marker");
+                }
+                else {
+                    this.$store.dispatch('changeActiveMode', "");
                 }
             },
             addNewSegment(marker1, marker2) {
