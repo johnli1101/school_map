@@ -11,6 +11,7 @@
             v-model="dialog"
             width="50vh"
             height="100vh"
+            @click:outside="handleDialogOff()"
         >
             <v-card>
                 <v-card-title class="headline grey lighten-2">
@@ -24,7 +25,8 @@
                         v-model="exportFilename"
                     ></v-text-field>
                     <span v-for="(error, index) in errorArray"
-                            :key="index">
+                            :key="index"
+                            class="errorText">
                         <br>{{error}}
                     </span>
                 </v-card-text>
@@ -49,7 +51,7 @@
                     <v-btn
                         color="primary"
                         text
-                        @click="dialog = false"
+                        @click="handleDialogOff()"
                     >
                         Cancel
                     </v-btn>
@@ -116,18 +118,55 @@ export default {
 
             //check for image if "image"
             if(errorChecks === "picture") {
-                let markersWOImage = [];
-                for(let i = 0; i < this.markers.length; ++i) {
-                    if(!this.markers[i].picture) {
-                        markersWOImage.push(this.markers[i].label);
-                    }
-                }
-                if(markersWOImage.length > 0) {
-                    this.errorArray.push("The following markers are still missing images: " + markersWOImage.join(', '));
-                }
+                this.checkPicture();
+                this.checkIfMarkerIsConencted();
             }
 
             return (this.errorArray.length > 0) ? true : false;
+        },
+        handleDialogOff() {
+            this.errorArray = [];
+            this.dialog = false;
+        },
+        checkPicture() {
+            let markersWOImage = [];
+            for(let i = 0; i < this.markers.length; ++i) {
+                if(!this.markers[i].picture) {
+                    markersWOImage.push(this.markers[i].label);
+                }
+            }
+            if(markersWOImage.length > 0) {
+                this.errorArray.push("The following markers are still missing images: " + markersWOImage.join(', '));
+            }
+        },
+        //for error checking if the given marker is connected to another marker by line segment
+        checkIfMarkerIsConencted() {
+            let allLineMarkers = [];
+            let allMarkers = [];
+
+            for(let i = 0; i < this.lineSegments.length; ++i) {
+                if(allLineMarkers.indexOf(this.lineSegments[i].pt1) === -1) {
+                    allLineMarkers.push(this.lineSegments[i].pt1);
+                }
+                if(allLineMarkers.indexOf(this.lineSegments[i].pt2) === -1) {
+                    allLineMarkers.push(this.lineSegments[i].pt2);
+                }
+            }
+            console.log(allLineMarkers);
+
+            for(let i = 0; i < this.markers.length; ++i) {
+                allMarkers.push(this.markers[i].label);
+            }
+
+            var filteredArray = allMarkers.filter(function(item){
+                return allLineMarkers.indexOf(item) === -1; 
+            });
+
+            console.log(filteredArray);
+            
+            if(filteredArray.length > 0) {
+                this.errorArray.push("The following markers are not connected: " + filteredArray.join(', '));
+            }
         },
         async urlToPromise(url) {
             return await new Promise(function(resolve, reject) {
@@ -192,25 +231,47 @@ export default {
                 let newCoordJson = {markers: {}, line_segments: {}};
                 let tempMarkerObject = {};
                 let filename = "";
+                let tempLineObject = {};
+                let newLineObject = {};
+                let newMarkerObject = {};
 
                 //gather all the marker points
                 for(let i = 0; i < this.markers.length; ++i) {
                     filename = this.markers[i].picture.substr(this.markers[i].picture.lastIndexOf('/') + 1);
-                    newCoordJson["markers"][filename] = [
+                    newMarkerObject[filename] = [
                                     this.markers[i].lat
                                     ,this.markers[i].lng
                                 ];
                     tempMarkerObject[this.markers[i].label] = filename;
+                    tempLineObject[this.markers[i].label] = [];
+                }
+
+                //create a new return array for line segments in accordance to the format requests
+                console.log("next");
+                for(let i = 0; i < this.lineSegments.length; ++i) {
+                    let index1 = this.lineSegments[i].pt1;
+                    let index2 = this.lineSegments[i].pt2
+                    if(tempLineObject[index1].indexOf(index2) === -1) {
+                        tempLineObject[index1].push(index2);
+                    }
+                    if(tempLineObject[index2].indexOf(index2) === -1) {
+                        tempLineObject[index2].push(index1);
+                    }
                 }
 
                 //gather all the line segments
-                for(let i = 0; i < this.lineSegments.length; ++i) {
-                    newCoordJson["line_segments"][tempMarkerObject[this.lineSegments[i].pt1]] = [
-                                tempMarkerObject[this.lineSegments[i].pt1]
-                                ,tempMarkerObject[this.lineSegments[i].pt2]
-                            ];
+                for(let i in tempLineObject) {
+                    console.log(i);
+                    console.log(tempLineObject[i].length);
+                    newLineObject[tempMarkerObject[i]] = [];
+                    for(let j = 0; j < tempLineObject[i].length; ++j) {
+                        console.log(tempLineObject[i][j]);
+                        newLineObject[tempMarkerObject[i]].push(tempMarkerObject[tempLineObject[parseInt(i)][j]]);
+                    } 
                 }
-                
+
+                newCoordJson["markers"] = newMarkerObject;
+                newCoordJson["line_segments"] = newLineObject;
                 console.log(newCoordJson);
                 
                 this.zipFiles(newCoordJson);
@@ -288,4 +349,9 @@ export default {
 </script>
 
 <style scoped>
+
+    .errorText {
+        color: red
+    }
+
 </style>

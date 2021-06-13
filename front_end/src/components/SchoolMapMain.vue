@@ -113,7 +113,7 @@
                 permanent: true
             },
             prevMarkerCoord: [],
-            testImage: ""
+            testImage: "",
         }),
         created() {
             this.$root.$refs.Map = this;
@@ -137,13 +137,15 @@
                         case "c":
                             if(this.activeMode === "marker" && !this.activeMarker.picture) {
                                 //handle delete function
-                                this.$root.$refs.Toolbar.handleCameraConfirm()
+                                // this.$root.$refs.TakePicture.handleCameraConfirm()
+                                this.$store.dispatch('changeDialogCameraConfirm', true);
                             }
                             break;
                         case "v":
                             if(this.activeMode === "marker" && this.activeMarker.picture) {
                                 //handle delete function
-                                this.$root.$refs.Toolbar.handleCameraImageOpen()
+                                // this.$root.$refs.ImagePreview.handleCameraImageOpen()
+                                this.$store.dispatch('changeDialogCameraPreview', true);
                             }
                             break;
                         case "q":
@@ -162,10 +164,33 @@
         },
         methods: {
             startSession() {
+                //test to print out the camera's current status
                 this.axios.get("http://localhost:5000/test").then(response => {
                     console.log("Hello");
                     console.log(response);
                 });
+            
+                //prevent the camera from sleeping, so set the delay option to 0 if it is not already set
+                this.axios.post("http://localhost:5000/getOptions", {optionNames: ["offDelay"]}).then(response => {
+                    console.log(response);
+                    //if the setting is not set already then set the delay to it
+                    console.log(response["data"]["results"]["options"]["offDelay"])
+                    if(response["data"]["results"]["options"]["offDelay"] !== 0
+                        && response["data"]["results"]["options"]["offDelay"] !== 65535) {
+    
+                        this.axios.post("http://localhost:5000/setOptions", {options: {offDelay: 0}}).then(response2 => {
+                            console.log(response2);
+                        }).catch(error2 => {
+                            console.log(error2);
+                        });
+                    }
+
+                }).catch(error => {
+                    console.log(error);
+                });
+
+
+            
             },
             getIcon(marker) {
                 if(marker.picture) {

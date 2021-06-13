@@ -61,6 +61,31 @@ def api_download_photo():
     byte_arr = byte_arr.getvalue()
     return byte_arr
 
+#accepts a options parameter and calls the setoptions on the camera api
+@app.route('/getOptions', methods=['POST'])
+def api_get_options():
+    request_data = request.get_json();
+    print(request_data);
+    data = json.dumps({"name":"camera.getOptions", "parameters": {"optionNames": request_data["optionNames"]}}).encode('ascii')
+    res = urllib.request.urlopen('http://192.168.1.1/osc/commands/execute', data)
+    returnJson = json.loads(res.read().decode('utf-8'))
+
+    print(returnJson)
+    return returnJson
+
+
+#accepts a options parameter and calls the setoptions on the camera api
+@app.route('/setOptions', methods=['POST'])
+def api_set_options():
+    request_data = request.get_json();
+    print(request_data);
+    data = json.dumps({"name":"camera.setOptions", "parameters": {"options": request_data["options"]}}).encode('ascii')
+    res = urllib.request.urlopen('http://192.168.1.1/osc/commands/execute', data)
+    returnJson = json.loads(res.read().decode('utf-8'))
+
+    print(returnJson)
+    return returnJson
+
 #lists all the camera files by entry count
 @app.route('/listImageFiles', methods=['POST'])
 def api_list_image_file():

@@ -10,6 +10,7 @@ import VueAxios from 'vue-axios';
 
 Vue.config.productionTip = false
 Vue.use(VueAxios, axios);
+Vue.prototype.$axios = axios
 Vue.component('l-map', LMap);
 Vue.component('l-tile-layer', LTileLayer);
 Vue.component('l-marker', LMarker);

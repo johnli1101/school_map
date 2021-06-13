@@ -16,6 +16,12 @@ export default new Vuex.Store({
         mapImageName: "",                                   //name of the fileName
         keyListen: true,                                    //boolean whether to listen for key bindings or not (usually should turn off for dialogs)
         loading: false,                                     //for controlling loading screen  
+        dialogLine: false,                                  //dialog control in toolbar for line segment deletion       
+        dialogDelete: false,                                //dialog control in toolbar for marker deletion
+        dialogCamera: false,                                //dialog control in toolbar for after picture taking
+        dialogCameraConfirm: false,                         //dialog control in toolbar for camera picture taking confirmation
+        dialogCameraPreview: false,                         //dialog control in toolbar for camera picture preview
+        
     },
     mutations: {
         // ----- all mode mutations ----
@@ -79,6 +85,22 @@ export default new Vuex.Store({
         },
         changeMapImageName(state, newName) {
             state.mapImageName = newName;
+        },
+        // ----------- dialog mutations -------------
+        changeDialogDelete(state, newState) {
+            state.dialogDelete = newState;
+        },
+        changeDialogLine(state, newState) {
+            state.dialogLine = newState;
+        },
+        changeDialogCamera(state, newState) {
+            state.dialogCamera = newState;
+        },
+        changeDialogCameraPreview(state, newState) {
+            state.dialogCameraPreview = newState;
+        },
+        changeDialogCameraConfirm(state, newState) {
+            state.dialogCameraConfirm = newState;
         },
         // ----------- misc ----------------
         changeKeyListen(state, newState) {
@@ -207,6 +229,34 @@ export default new Vuex.Store({
         changeLoading(context, newState) {
             console.log(newState);
             context.commit('changeLoading', newState);
-        }
+        },
+        // -------------- Dialog Actions ------------------
+        changeDialogDelete(context, newState) {
+            context.commit('changeDialogDelete', newState);
+
+            //also update the changeKeyListen to disable key presses while in dialog
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogLine(context, newState) {
+            context.commit('changeDialogLine', newState);
+
+            //also update the changeKeyListen to disable key presses while in dialog
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogCamera(context, newState) {
+            context.commit('changeDialogCamera', newState);
+            console.log(newState);
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogCameraPreview(context, newState) {
+            context.commit('changeDialogCameraPreview', newState);
+
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogCameraConfirm(context, newState) {
+            context.commit('changeDialogCameraConfirm', newState);
+
+            context.commit('changeKeyListen', !newState);
+        },
     }
   })
