@@ -65,6 +65,8 @@ export default {
         async handleClear() {
             this.$store.dispatch('changeLoading', true);
             this.$store.dispatch('clearAllMarkersAndSegments');
+            this.$store.dispatch('changeMapImageUrl', "");
+            this.$store.dispatch('changeMapBounds', [0, 0]);
             this.axios.post("http://localhost:5000/clear").then(response => {
                 console.log(response);
             }).catch(error => {
