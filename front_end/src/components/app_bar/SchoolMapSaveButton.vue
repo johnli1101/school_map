@@ -42,11 +42,20 @@ export default {
     methods: {
         async handleSave() {
             this.$store.dispatch('changeLoading', true);
-            this.axios.post("http://localhost:5000/save", this.markers).then(response => {
+            let payload = {
+                markers: this.markers
+                ,line_segments: this.line_segments
+                ,map_settings: {
+                    map_image: this.mapImageURL
+                    ,map_height: this.mapBounds[0]
+                    ,map_width: this.mapBounds[1]
+                }
+            }
+            this.axios.post("http://localhost:5000/save", payload).then(response => {
                 console.log(response);
             }).catch(error => {
                 console.log(error);
-            });
+            });  
 
             this.$store.dispatch('changeLoading', false);
         },

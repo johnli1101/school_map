@@ -179,7 +179,8 @@ export default {
             })
         },
         getMarkerPicture() {
-            if(this.activeMarker.picture !== "") {
+            console.log(this.activeMarker.picture);
+            if(this.activeMarker.picture !== "" && this.activeMarker.picture !== undefined) {
                 let filename = this.activeMarker.picture.substr(this.activeMarker.picture.lastIndexOf('/') + 1);
                 console.log(filename);
 
@@ -417,10 +418,10 @@ export default {
             console.log(filename);
 
             this.$store.dispatch('changeLoading', true);
+            let pictureUrl = "http://localhost:8080/uploaded_assets/camera/" + filename;
+            let response = await this.axios.post("http://localhost:5000/downloadPhoto", {fileUrl: pictureUrl}, {responseType: "blob"});
 
-            let response = await this.axios.post("http://localhost:5000/downloadPhoto", {fileUrl: this.activeMarker.picture}, {responseType: "blob"});
-
-            console.log(response);
+            // console.log(response);
             var fileURL = window.URL.createObjectURL(new Blob([response.data]));
             var fileLink = document.createElement('a');
 

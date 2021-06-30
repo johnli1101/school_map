@@ -87,22 +87,66 @@
 
                 console.log(file);
 
+                
                 let imageURL = URL.createObjectURL(file);
                 
                 let img = new Image();
                 img.onload = () => {
                     console.log(img.width + " " + img.height);
 
-                    this.$store.dispatch('changeMapImageUrl', imageURL);
-                    this.$store.dispatch('changeMapBounds', [img.height, img.width]);
-                    this.$store.dispatch('changeMapImageName', file.name);
-                    this.$root.$refs.Map.clearMarkers();
+                    this.$store.dispatch('clearAllMarkersAndSegments');
+                    
+                    this.updateMapDatabase(file, img);
                 }
                 img.src = imageURL;
                 
                 this.currentFile = [];
 
                 this.dialog = false;
+            },
+            async updateMapDatabase(file, img) {
+                this.$store.dispatch('changeLoading', true);
+
+                //clear all markers first
+                await this.axios.post("http://localhost:5000/clear").then(response => {
+                    console.log(response);
+                }).catch(error => {
+                    console.log(error);
+                });
+                
+                //upload map image
+                let newFilename = "";
+                var data = new FormData()
+                data.append('file', file);
+                console.log(data);
+                await this.axios.post("http://localhost:5000/uploadMap", data, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data'
+                    }
+                }).then(response => {
+                    console.log(response);
+                    newFilename = response["data"];
+
+                }).catch(error => {
+                    console.log(error);
+                });
+                console.log(newFilename);
+                //update map
+                let tempMapObj = {
+                        map_image: newFilename
+                        ,map_height: img.height
+                        ,map_width: img.width
+                    };
+                await this.axios.post("http://localhost:5000/updateMap", tempMapObj).then(response => {
+                    console.log(response);
+                }).catch(error => {
+                    console.log(error);
+                });    
+
+                this.$store.dispatch('changeMapImageUrl', newFilename);
+                this.$store.dispatch('changeMapBounds', [img.height, img.width]);
+
+                this.$store.dispatch('changeLoading', false);
             },
             handleOnFileChange(file) {
                 this.currentFile = file;

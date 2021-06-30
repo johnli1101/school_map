@@ -9,8 +9,8 @@
             style="z-index: 0;"
         >
         <l-image-overlay
-            :url="getMapOverlay()"
-            :bounds="getMapBounds()"
+            :url="this.mapImageURL"
+            :bounds="[[0,0], this.mapBounds]"
         />
         <l-marker
             v-for="marker in markers"
@@ -203,23 +203,15 @@
                     console.log(response);
                     this.$store.dispatch('setNewMarkersList', response["data"]["markers"]);
                     this.$store.dispatch('setNewLineSegmentsList', response["data"]["line_segments"]);
+                    this.$store.dispatch('changeMapImageUrl', response["data"]["map_settings"]["mapImageURL"]);
+                    this.$store.dispatch('changeMapBounds', response["data"]["map_settings"]["mapBounds"]);
+                    console.log(JSON.stringify(this.mapBounds));
+                    console.log(this.mapImageURL);
                 }).catch(error => {
                     console.log(error);
                 });
                 
                 this.$store.dispatch('changeLoading', false);
-            },
-            getMapOverlay() {
-                if(this.mapImageURL === null || this.mapImageURL === "") {
-                    this.$store.dispatch('changeMapImageUrl', require("./doushishaRyokanBldg.jpg"))
-                } 
-                return this.mapImageURL;
-            },
-            getMapBounds() {
-                if(this.mapBounds === null) {
-                    this.$store.dispatch('changeMapBounds', [700, 1200]);
-                }
-                return [[0,0], this.mapBounds];
             },
             getIcon(marker) {
                 if(marker.picture) {
@@ -248,9 +240,6 @@
             calculateCenter() {
                 return [this.mapBounds[0] / 2, this.mapBounds[1] / 2];
             },
-            clearMarkers() {
-                this.$store.dispatch('clearAllMarkersAndSegments');
-            },
             importedJson(coordJson) {
                 let newMarkers = [];
                 let newLineSegments = [];
@@ -273,20 +262,17 @@
                         ,picture: jsonMarkers[i].picture
                         ,lat: jsonMarkers[i].lat
                         ,lng: jsonMarkers[i].lng
+                        ,pictureMarkers: jsonMarkers[i].pictureMarkers
                     })
                 }
 
                 console.log(newMarkers);
 
-                let marker1 = {};
-                let marker2 = {};
                 for(let i in jsonLineSegments) {
-                    marker1 = this.getMarkerFromMarkerLabel(jsonLineSegments[i][0], newMarkers);
-                    marker2 = this.getMarkerFromMarkerLabel(jsonLineSegments[i][1], newMarkers);
                     newLineSegments.push ({
-                            pt1: marker1.label
-                            ,pt2: marker2.label
-                            ,coord: [[marker1.lat, marker1.lng], [marker2.lat, marker2.lng]]
+                            pt1: jsonLineSegments[i]["pt1"]
+                            ,pt2: jsonLineSegments[i]["pt2"]
+                            ,coord: jsonLineSegments[i]["coord"]
                     });
                 }
 
@@ -294,7 +280,23 @@
 
                 this.$store.dispatch('setNewMarkersList', newMarkers);
                 this.$store.dispatch('setNewLineSegmentsList', newLineSegments);
-                this.$store.dispatch('changeActiveMarker', {});
+                this.$store.dispatch('changeActiveMarker', {});                
+
+                let payload = {
+                    markers: newMarkers
+                    ,line_segments: newLineSegments
+                    ,map_settings: {
+                        map_image: this.mapImageURL
+                        ,map_height: this.mapBounds[0]
+                        ,map_width: this.mapBounds[1]
+                    }
+                }
+                this.axios.post("http://localhost:5000/save", payload).then(response => {
+                    console.log(response);
+                }).catch(error => {
+                    console.log(error);
+                });  
+
             },
             onClickPolyLine(event) {
                 if(!this.additionMode) {
@@ -404,6 +406,7 @@
             },
             onClickMarkerHandler(marker) {
                 //set active image marker to nothing
+                console.log(marker)
                 this.$store.dispatch('changeActiveImageMarker', {});
                 if(this.additionMode === "lineAdd") {
                     if(this.markers.length > 1) {

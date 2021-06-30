@@ -234,14 +234,26 @@ export default {
                 let tempLineObject = {};
                 let newLineObject = {};
                 let newMarkerObject = {};
+                let tempImageMarkerArr = [];
 
                 //gather all the marker points
                 for(let i = 0; i < this.markers.length; ++i) {
+
                     filename = this.markers[i].picture.substr(this.markers[i].picture.lastIndexOf('/') + 1);
                     newMarkerObject[filename] = [
-                                    this.markers[i].lat
-                                    ,this.markers[i].lng
-                                ];
+                            this.markers[i].lat
+                            ,this.markers[i].lng
+                        ];
+
+                    for(let j = 0; j < this.markers[i]["pictureMarkers"].length; ++j) {
+                        tempImageMarkerArr = [
+                                this.markers[i]["pictureMarkers"][j].picture
+                                ,this.markers[i]["pictureMarkers"][j].lat
+                                ,this.markers[i]["pictureMarkers"][j].lng
+                            ];
+                        newMarkerObject[filename].push(tempImageMarkerArr);
+                    }
+                    
                     tempMarkerObject[this.markers[i].label] = filename;
                     tempLineObject[this.markers[i].label] = [];
                 }
@@ -267,7 +279,7 @@ export default {
                     for(let j = 0; j < tempLineObject[i].length; ++j) {
                         console.log(tempLineObject[i][j]);
                         newLineObject[tempMarkerObject[i]].push(tempMarkerObject[tempLineObject[parseInt(i)][j]]);
-                    } 
+                    }
                 }
 
                 newCoordJson["markers"] = newMarkerObject;
@@ -275,6 +287,8 @@ export default {
                 console.log(newCoordJson);
                 
                 this.zipFiles(newCoordJson);
+
+                this.dialog = false;
             }
         },
         async zipFiles(newCoordJson) {
@@ -292,8 +306,16 @@ export default {
                 console.log(this.markers[i].picture);
                 
                 //zip.folder(this.exportFilename).file('coordinates.json', data)
-                let pictureData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: this.markers[i].picture}, {responseType: "blob"});
+                let pictureUrl = "http://localhost:8080/uploaded_assets/camera/" + pictureFilename;
+                let pictureData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: pictureUrl}, {responseType: "blob"});
                 zip.file(pictureFilename, new Blob([pictureData.data]));
+
+                for(let j = 0; j < this.markers[i]["pictureMarkers"].length; ++j) {
+                    let imageMarkerFilename = this.markers[i]["pictureMarkers"][j]["picture"].substr(this.markers[i]["pictureMarkers"][j]["picture"].lastIndexOf('/') + 1);
+                    let imageMarkerUrl = "http://localhost:8080/uploaded_assets/markers/" + imageMarkerFilename;
+                    let imageMarkerData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: imageMarkerUrl}, {responseType: "blob"});
+                    zip.file(imageMarkerFilename, new Blob([imageMarkerData.data]));
+                }
             }
             //zip.file(pictureFilename, pictureData.data, {binary: true});
             zip.file('coordinates.json', data);
@@ -309,28 +331,43 @@ export default {
                 console.log(this.lineSegments);
 
                 let newCoordJson = {markers: {}, line_segments: {}};
+                let tempImageMarker = {};
 
                 //gather all the marker points
                 for(let i = 0; i < this.markers.length; ++i) {
                     newCoordJson["markers"][this.markers[i].label] = {
-                            picture: ""
+                            picture: this.markers[i].picture
                             ,lat: this.markers[i].lat
                             ,lng: this.markers[i].lng
+                            ,pictureMarkers: []
+                    }
+
+                    for(let j = 0; j < this.markers[i]["pictureMarkers"].length; ++j) {
+                        tempImageMarker =  {
+                            label: this.markers[i]["pictureMarkers"][j].label
+                            ,picture: this.markers[i]["pictureMarkers"][j].picture
+                            ,lat: this.markers[i]["pictureMarkers"][j].lat
+                            ,lng: this.markers[i]["pictureMarkers"][j].lng
+                        };
+                        newCoordJson["markers"][this.markers[i].label]["pictureMarkers"].push(tempImageMarker);
                     }
                 }
 
                 //gather all the line segments
                 for(let i = 0; i < this.lineSegments.length; ++i) {
-                    newCoordJson["line_segments"][(i+1)] = [
-                            this.lineSegments[i].pt1
-                            ,this.lineSegments[i].pt2
-                    ];
+                    newCoordJson["line_segments"][(i+1)] = {
+                            pt1: this.lineSegments[i].pt1
+                            ,pt2: this.lineSegments[i].pt2
+                            ,coord: [[this.lineSegments[i].coord[0][0], this.lineSegments[i].coord[0][1]]
+                                        ,[this.lineSegments[i].coord[1][0], this.lineSegments[i].coord[1][1]]]
+                    }
                 }
 
-                //newCoordJson["map_file_path"] = 
+                newCoordJson["map_file_path"] = this.mapImageURL;
                 
                 console.log(newCoordJson);
                 this.exportJson(newCoordJson, this.exportFilename);
+                this.dialog = false;
             }
         },
         exportJson(toExportJson, fileName) {

@@ -3,13 +3,13 @@ use school_map;
 
 CREATE TABLE IF NOT EXISTS map_settings(
     id int NOT NULL AUTO_INCREMENT,
-    map_image varchar(255) NOT NULL,
-    map_height float NOT NULL,
-    map_width float NOT NULL,
+    map_image varchar(255) default "",
+    map_height float default 0,
+    map_width float default 0,
     PRIMARY KEY (id)
 ) ENGINE=INNODB;
 
-INSERT INTO map_settings(map_image, map_height, map_width) VALUES ("./doushishaRyokanBldg.jpg", 700, 1200);
+INSERT INTO map_settings(map_image, map_height, map_width) VALUES ("", 0, 0);
 
 CREATE TABLE IF NOT EXISTS markers (
     label int NOT NULL,
