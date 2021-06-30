@@ -7,8 +7,9 @@ export default new Vuex.Store({
     state: {
         additionMode: "",                                   //controls the mode of adding a new marker or line segment
         activeMarker: {},                                   //current active marker OR line segment
+        activeImageMarker: {},                              //current active image marker
         activeMode: "",                                     //current active mode can be line segment or marker
-        markers: [],                                        //marker list for the map
+        markers: [],                                        //marker list for the map; for testing: {label: 1, lat: 319.09246170653944, lng: 411.06777986636115, picture: "./R0010298.JPG", pictureMarkers: []}
         lineSegments: [],                                   //line segment list the map
         importedCoordJson: {},                              //imported Json
         mapImageURL: require("./doushishaRyokanBldg.jpg"),  //image for the map. defaulted to doushisha map
@@ -21,7 +22,10 @@ export default new Vuex.Store({
         dialogCamera: false,                                //dialog control in toolbar for after picture taking
         dialogCameraConfirm: false,                         //dialog control in toolbar for camera picture taking confirmation
         dialogCameraPreview: false,                         //dialog control in toolbar for camera picture preview
-        
+        dialogUploadImage: false,                           //dialog control in image marker for camera image upload
+        dialogImageMarkerPreview: false,                    //dialog control in image marker for image preview
+        dialogClear: false,                                 //dialog control in appbar for clear map
+        updateImageMarkerMode: false,                         //to check if uploading a new image for image marker to replace
     },
     mutations: {
         // ----- all mode mutations ----
@@ -58,6 +62,34 @@ export default new Vuex.Store({
         updateMarkerPicture(state, payload) {
             Vue.set(state.markers[payload.index], "picture", payload.picture);
             console.log(state.markers[payload.index]);
+        },
+        // -------- image marker mutations --------------
+        changeActiveImageMarker(state, imageMarker) {
+            state.activeImageMarker = imageMarker;
+        },
+        addNewImageMarker(state, payload) {
+            let toChangeIndex = state.markers.indexOf(payload.markerToChange);
+            state.markers[toChangeIndex]["pictureMarkers"].push(payload.newImageMarker);
+            console.log(state.markers);
+        },
+        updateImageMarkerImage(state, payload) {
+            let toChangeIndex = payload.markerIndex;
+            let imageMarkerIndex = payload.imageMarkerIndex;
+            Vue.set(state.markers[toChangeIndex]["pictureMarkers"][imageMarkerIndex], "picture", payload.newImage); 
+        },
+        updateImageMarkerCoord(state, payload) {
+            let toChangeIndex = payload.markerIndex;
+            let imageMarkerIndex = payload.imageMarkerIndex;
+            Vue.set(state.markers[toChangeIndex]["pictureMarkers"][imageMarkerIndex], "lat", payload.newLat);
+            Vue.set(state.markers[toChangeIndex]["pictureMarkers"][imageMarkerIndex], "lng", payload.newLng); 
+        },
+        deleteImageMarker(state, payload) {
+            let toChangeIndex = payload.markerIndex;
+            let markerIndexToDelete = payload.imageMarkerIndex;
+            state.markers[toChangeIndex]["pictureMarkers"].splice(markerIndexToDelete, 1);
+        },
+        updateImageVariable(state, mode) {
+            state.updateImageMarkerMode = mode
         },
         // -------- all line segment mutations ----------
         addToLineSegments(state, lineSegment) {
@@ -102,13 +134,22 @@ export default new Vuex.Store({
         changeDialogCameraConfirm(state, newState) {
             state.dialogCameraConfirm = newState;
         },
+        changeDialogUploadImage(state, newState) {
+            state.dialogUploadImage = newState;
+        },
+        changeDialogImageMarkerPreview(state, newState) {
+            state.dialogImageMarkerPreview = newState;
+        },
+        changeDialogClear(state, newState) {
+            state.dialogClear = newState;
+        },
         // ----------- misc ----------------
         changeKeyListen(state, newState) {
             state.keyListen = newState;
         },
         changeLoading(state, isLoading) {
             state.loading = isLoading;
-        }
+        },
     },
     actions: {
         // ----  for changing map bounds, map image url, and map image name ----
@@ -121,6 +162,7 @@ export default new Vuex.Store({
         changeMapImageName(context, newName) {
             context.commit('changeMapImageName', newName);
         },
+        // ---------------- Changing Modes and Active Markers ------------------
         //changes the mode of the adding line or marker
         changeMode(context, mode) {
             console.log(mode +  " " + context.state.additionMode);
@@ -152,6 +194,7 @@ export default new Vuex.Store({
         changeActiveMode(context, mode) {
             context.commit('changeActiveMode', mode);
         },
+        // ----------------------- Markers --------------------------------
         //name: updateMarkers
         //description: updates a marker given by payload
         //payload requirement: 
@@ -191,11 +234,6 @@ export default new Vuex.Store({
                 };
             context.commit('updateMarkerPicture', newPayload);
         },
-        //adds a new line segment to the list
-        addToLineSegments(context, lineToAdd) {
-            console.log(lineToAdd);
-            context.commit('addToLineSegments', lineToAdd);
-        },
         //name: updateLineByIndexCoord
         //description: updates line by 1 set of coords at a time
         //payload requirement: 
@@ -205,11 +243,7 @@ export default new Vuex.Store({
         updateLineByIndexCoord(context, payload) {
             context.commit('updateLineByIndexCoord', payload);
         },
-        //deletes line segment
-        deleteFromLineSegments(context, lineToDelete) {
-            let toDeleteLineIndex = context.state.lineSegments.indexOf(lineToDelete);
-            context.commit('deleteFromLineSegmentsByIndex', toDeleteLineIndex);
-        },
+
         //clears both markers and line segments lists
         clearAllMarkersAndSegments(context) {
             context.commit('eraseAllLineSegments');
@@ -219,10 +253,79 @@ export default new Vuex.Store({
         setNewMarkersList(context, newMarkers) {
             context.commit('setNewMarkers', newMarkers);
         },
+        // --------------- Image markers -------------------
+        // for changing the active image marker
+        changeActiveImageMarker(context, imageMarker) {
+            context.commit('changeActiveImageMarker', imageMarker);
+        },
+        // addNewMonMarker payload information:
+        //      markerToChange: marker object
+        //      newImageMarker: marker object
+        addNewImageMarker(context, payload) {
+            context.commit('addNewImageMarker', payload);
+        },
+        // updateImageMarker payload information:
+        //      markerToChange: marker object
+        //      imageMarker: marker object
+        //      newImage: image url
+        updateImageMarkerImage(context, payload) {
+            let markerIndex = context.state.markers.indexOf(payload.markerToChange);
+            let imageMarkerIndex = context.state.markers[markerIndex]["pictureMarkers"].indexOf(payload.imageMarker);
+            let payload2 = {
+                markerIndex: markerIndex
+                ,imageMarkerIndex: imageMarkerIndex
+                ,newImage: payload.newImage
+            }
+            context.commit('updateImageMarkerImage', payload2);
+        },
+        // updateImageMarkerCoord payload information:
+        //      markerToChange: marker object
+        //      imageMarker: marker object
+        //      newLat: new lat value
+        //      newLng: new lng value
+        updateImageMarkerCoord(context, payload) {
+            let markerIndex = context.state.markers.indexOf(payload.markerToChange);
+            let imageMarkerIndex = context.state.markers[markerIndex]["pictureMarkers"].indexOf(payload.imageMarker);
+            let payload2 = {
+                markerIndex: markerIndex
+                ,imageMarkerIndex: imageMarkerIndex
+                ,newLat: payload.newLat
+                ,newLng: payload.newLng
+            }
+            context.commit('updateImageMarkerCoord', payload2);
+        },
+        // deleteImageMarker payload information:
+        //      markerToChange: marker object
+        //      imageMarker: marker object
+        deleteImageMarker(context, payload) {
+            let markerIndex = context.state.markers.indexOf(payload.markerToChange);
+            let imageMarkerIndex = context.state.markers[markerIndex]["pictureMarkers"].indexOf(payload.imageMarker);
+            let payload2 = {
+                markerIndex: markerIndex,
+                imageMarkerIndex: imageMarkerIndex
+            }
+            context.commit('deleteImageMarker', payload2);
+        },
+        //changinge the mode of the variable for the dialog
+        updateImageVariable(context, mode) {
+            context.commit('updateImageVariable', mode);
+        },
+        //--------------- Line Segments ---------------------
+        //deletes line segment
+        deleteFromLineSegments(context, lineToDelete) {
+            let toDeleteLineIndex = context.state.lineSegments.indexOf(lineToDelete);
+            context.commit('deleteFromLineSegmentsByIndex', toDeleteLineIndex);
+        },
         //sets a completely new line segments list
         setNewLineSegmentsList(context, newLineSegments) {
             context.commit('setNewLineSegments', newLineSegments);
         },
+        //adds a new line segment to the list
+        addToLineSegments(context, lineToAdd) {
+            console.log(lineToAdd);
+            context.commit('addToLineSegments', lineToAdd);
+        },
+        // --------------- Misc -------------------------
         changeKeyListen(context, newState) {
             context.commit('changeKeyListen', newState);
         },
@@ -255,6 +358,21 @@ export default new Vuex.Store({
         },
         changeDialogCameraConfirm(context, newState) {
             context.commit('changeDialogCameraConfirm', newState);
+
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogUploadImage(context, newState) {
+            context.commit('changeDialogUploadImage', newState);
+
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogImageMarkerPreview(context, newState) {
+            context.commit('changeDialogImageMarkerPreview', newState);
+
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogClear(context, newState) {
+            context.commit('changeDialogClear', newState);
 
             context.commit('changeKeyListen', !newState);
         },

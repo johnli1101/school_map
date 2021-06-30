@@ -9,8 +9,8 @@
             style="z-index: 0;"
         >
         <l-image-overlay
-            :url="mapImageURL"
-            :bounds="[[0, 0], mapBounds]"
+            :url="getMapOverlay()"
+            :bounds="getMapBounds()"
         />
         <l-marker
             v-for="marker in markers"
@@ -119,6 +119,7 @@
             this.$root.$refs.Map = this;
 
             this.startSession();
+            this.loadFromDatabase();
 
             //handle button presses
             window.addEventListener('keydown', (e) => {
@@ -163,34 +164,62 @@
             });
         },
         methods: {
-            startSession() {
+            async startSession() {
+                this.$store.dispatch('changeLoading', true);
                 //test to print out the camera's current status
+                console.log("Hello");
                 this.axios.get("http://localhost:5000/test").then(response => {
                     console.log("Hello");
                     console.log(response);
-                });
-            
-                //prevent the camera from sleeping, so set the delay option to 0 if it is not already set
-                this.axios.post("http://localhost:5000/getOptions", {optionNames: ["offDelay"]}).then(response => {
-                    console.log(response);
-                    //if the setting is not set already then set the delay to it
-                    console.log(response["data"]["results"]["options"]["offDelay"])
-                    if(response["data"]["results"]["options"]["offDelay"] !== 0
-                        && response["data"]["results"]["options"]["offDelay"] !== 65535) {
-    
-                        this.axios.post("http://localhost:5000/setOptions", {options: {offDelay: 0}}).then(response2 => {
-                            console.log(response2);
-                        }).catch(error2 => {
-                            console.log(error2);
-                        });
-                    }
-
                 }).catch(error => {
                     console.log(error);
                 });
+                console.log("Hello");
+                //prevent the camera from sleeping, so set the delay option to 0 if it is not already set
+                // this.axios.post("http://localhost:5000/getOptions", {optionNames: ["offDelay"]}).then(response => {
+                //     console.log(response);
+                //     //if the setting is not set already then set the delay to it
+                //     console.log(response["data"]["results"]["options"]["offDelay"])
+                //     if(response["data"]["results"]["options"]["offDelay"] !== 0
+                //         && response["data"]["results"]["options"]["offDelay"] !== 65535) {
+    
+                //         this.axios.post("http://localhost:5000/setOptions", {options: {offDelay: 0}}).then(response2 => {
+                //             console.log(response2);
+                //         }).catch(error2 => {
+                //             console.log(error2);
+                //         });
+                //     }
+                // }).catch(error => {
+                //     console.log(error);
+                // });
 
-
+                this.$store.dispatch('changeLoading', false);
             
+            },
+            //loads all markers and images from database if it was saved
+            async loadFromDatabase() {
+                this.$store.dispatch('changeLoading', true);
+                await this.axios.get("http://localhost:5000/load").then(response => {
+                    console.log(response);
+                    this.$store.dispatch('setNewMarkersList', response["data"]["markers"]);
+                    this.$store.dispatch('setNewLineSegmentsList', response["data"]["line_segments"]);
+                }).catch(error => {
+                    console.log(error);
+                });
+                
+                this.$store.dispatch('changeLoading', false);
+            },
+            getMapOverlay() {
+                if(this.mapImageURL === null || this.mapImageURL === "") {
+                    this.$store.dispatch('changeMapImageUrl', require("./doushishaRyokanBldg.jpg"))
+                } 
+                return this.mapImageURL;
+            },
+            getMapBounds() {
+                if(this.mapBounds === null) {
+                    this.$store.dispatch('changeMapBounds', [700, 1200]);
+                }
+                return [[0,0], this.mapBounds];
             },
             getIcon(marker) {
                 if(marker.picture) {
@@ -301,18 +330,23 @@
 
                 return returnLineSegment;
             },
-            deleteLineSegment(lineSegment) {
+             async deleteLineSegment(lineSegment) {
                 console.log(this.lineSegments);
                 console.log(lineSegment);
 
                 this.$store.dispatch('deleteFromLineSegments', lineSegment);
+                await this.axios.post("http://localhost:5000/deleteLineSegment", lineSegment).then(response => {
+                    console.log(response);
+                }).catch(error => {
+                    console.log(error);
+                });
                 this.$store.dispatch('changeActiveMode', "");
             },
-            deleteMarker(marker) {
+            async deleteMarker(marker) {
                 let toDeleteIndexes = [];
 
                 //remove all lines connected to this marker
-                console.log(this.lineSegments);
+                console.log(this.lineSegments); 
                 console.log(marker);
                 for(let i in this.lineSegments) {
                     if(marker.label.toString() === this.lineSegments[i].pt1.toString()
@@ -321,18 +355,41 @@
                     }
                 }
 
+                this.$store.dispatch('changeLoading', true);
+
                 //splice line segments from the array
                 for(let i = toDeleteIndexes.length-1; i >= 0; --i) {
+                    
+                    //------this section is a temporary workaround ----------
+                    let line_segment = this.lineSegments[toDeleteIndexes[i]];
+                    let tempLineSegment = {
+                        pt1: line_segment["pt1"]
+                        ,pt2: line_segment["pt2"]
+                        ,coord: [[line_segment["coord"][0][0], line_segment["coord"][0][1]], [line_segment["coord"][1][0], line_segment["coord"][1][1]]]
+                    }
+                    // -------------------------------------------------------
+
                     this.$store.dispatch('deleteFromLineSegments', this.lineSegments[toDeleteIndexes[i]]);
+                    await this.axios.post("http://localhost:5000/deleteLineSegment", tempLineSegment).then(response => {
+                        console.log(response);
+                    }).catch(error => {
+                        console.log(error);
+                    });
                 }
 
                 //after fixing all of it now delete the point
                 this.$store.dispatch('deleteFromMarkers', marker);
+                await this.axios.post("http://localhost:5000/deleteMarker", marker).then(response => {
+                        console.log(response);
+                    }).catch(error => {
+                        console.log(error);
+                    });
 
                 console.log(this.lineSegments);
                 console.log(this.markers);
 
                 this.$store.dispatch('changeActiveMode', "marker");
+                this.$store.dispatch('changeLoading', false);
             },
             getCurrentLineIndex(coords, lineIndex) {
                 let index = -1;                
@@ -346,6 +403,8 @@
                 return index;
             },
             onClickMarkerHandler(marker) {
+                //set active image marker to nothing
+                this.$store.dispatch('changeActiveImageMarker', {});
                 if(this.additionMode === "lineAdd") {
                     if(this.markers.length > 1) {
                        if(this.activeMarker.label) {
@@ -393,17 +452,24 @@
                     return missingIds[0];
                 }
             },
-            addMarker(event) {
+            async addMarker(event) {
                 if(this.additionMode === "addMarker" || this.additionMode === "addConnectedMarker") {
                     console.log(event);
                     let newMarker = {};
                     let newMarkerName = this.nextUniqueId();
                     console.log(newMarkerName);
 
-                    newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"], picture: ""};
+                    newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"], picture: "", pictureMarkers: []};
                     console.log(newMarker);
                     this.$store.dispatch('addToMarkers', newMarker);
-
+                    this.$store.dispatch('changeLoading', true);
+                    await this.axios.post("http://localhost:5000/addMarker", newMarker).then(response => {
+                        console.log(response);
+                        
+                    }).catch(error => {
+                        console.log(error);
+                    });
+                    this.$store.dispatch('changeLoading', false);
                     console.log(this.markers);
                     console.log(this.$refs);
                     console.log("marker" + newMarker.label);
@@ -411,7 +477,7 @@
                     let markLength = this.markers.length;
 
                     if(markLength > 1 && this.activeMarker.label && this.additionMode === "addConnectedMarker") {
-                        this.addNewSegment(this.activeMarker, this.markers[markLength-1]);
+                        await this.addNewSegment(this.activeMarker, this.markers[markLength-1]);
                     }
                     console.log(this.lineSegments);
 
@@ -424,11 +490,16 @@
                 //     this.$store.dispatch('changeActiveMode', "");
                 // }
             },
-            addNewSegment(marker1, marker2) {
+            async addNewSegment(marker1, marker2) {
                 console.log(marker1);
                 console.log(marker2);
                 let newLineObject = {pt1: marker1.label, pt2: marker2.label, coord: [[marker1.lat, marker1.lng], [marker2.lat, marker2.lng]]};
-                this.$store.dispatch('addToLineSegments', newLineObject);            
+                this.$store.dispatch('addToLineSegments', newLineObject);   
+                this.axios.post("http://localhost:5000/addLineSegment", newLineObject).then(response => {
+                    console.log(response);
+                }).catch(error => {
+                    console.log(error);
+                });         
             },
             removeMarker(index) {
                 this.markers.splice(index, 1);
@@ -452,17 +523,21 @@
                 console.log(this.activeMarker);
             },
             //set the new coordinates into the lineSegments array
-            dragEndHandler(e) {
+            async dragEndHandler(e) {
                 let newCoordinates = [e.target._latlng.lat, e.target._latlng.lng];
                 let newLineSegments = this.lineSegments;
                 console.log(this.lineSegments);
                 let toChangeLineSegment = {};
                 let payload = {};
+                let databaseLineSegment = {};
 
                 console.log(newCoordinates);
 
+                this.$store.dispatch('changeLoading', true);
+
                 for(let i = 0; i < newLineSegments.length; ++i) {
                     toChangeLineSegment = this.lineSegments[i];
+                    databaseLineSegment = toChangeLineSegment;
                     if(this.activeMarker.label.toString() === newLineSegments[i].pt1.toString()) {
                         payload = {
                             coordIndex: 0
@@ -470,6 +545,13 @@
                             ,lineSegment: toChangeLineSegment
                         };
                         this.$store.dispatch('updateLineByIndexCoord', payload);
+
+                        databaseLineSegment.coord[0] = newCoordinates; 
+                        await this.axios.post("http://localhost:5000/updateLineSegment", databaseLineSegment).then(response => {
+                            console.log(response);
+                        }).catch(error => {
+                            console.log(error);
+                        });
                     }
                     else if(this.activeMarker.label.toString() === newLineSegments[i].pt2.toString()) {
                         payload = {
@@ -478,6 +560,13 @@
                             ,lineSegment: toChangeLineSegment
                         };
                         this.$store.dispatch('updateLineByIndexCoord', payload);
+
+                        databaseLineSegment.coord[1] = newCoordinates;
+                        await this.axios.post("http://localhost:5000/updateLineSegment", databaseLineSegment).then(response => {
+                            console.log(response);
+                        }).catch(error => {
+                            console.log(error);
+                        });
                     }
                 }
 
@@ -490,6 +579,16 @@
                 }
                 this.$store.dispatch('updateMarkers', payload);
 
+                let databaseMarker = this.activeMarker;
+                databaseMarker["lat"] = newCoordinates[0];
+                databaseMarker["lng"] = newCoordinates[1];
+                await this.axios.post("http://localhost:5000/updateMarker", this.activeMarker).then(response => {
+                    console.log(response);
+                }).catch(error => {
+                    console.log(error);
+                });
+
+                this.$store.dispatch('changeLoading', false);
             },
         }
     }

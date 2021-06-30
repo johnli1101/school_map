@@ -11,7 +11,7 @@
 
 <script>
     import SchoolMapMain from './SchoolMapMain';
-    import SchoolMapAppBar from './SchoolMapAppBar';
+    import SchoolMapAppBar from './app_bar/SchoolMapAppBar';
     import SchoolMapMarkerToolbar from './SchoolMapMarkerToolbar';
     import SchoolMapOverlay from './SchoolMapOverlay';
 
