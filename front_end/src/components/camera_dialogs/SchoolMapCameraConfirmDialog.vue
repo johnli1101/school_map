@@ -73,6 +73,7 @@ export default {
     methods: {
         handleCameraConfirm() {
             this.$store.dispatch('changeDialogCameraConfirm', true);
+            console.log(this.activeMarker);
         },
         handleCameraConfirmOff() {
             this.$store.dispatch('changeDialogCameraConfirm', false);

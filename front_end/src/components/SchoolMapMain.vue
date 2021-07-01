@@ -129,16 +129,15 @@
                         case "d":
                             if(this.activeMode === "marker" && this.markers.length > 0) {
                                 //handle delete function
-                                this.$root.$refs.Toolbar.handleClickDelete()
+                                this.$root.$refs.MarkerDeleteConfirm.handleClickDelete()
                             }
                             else if(this.activeMode === "lineSegment" && this.lineSegments.length > 0) {
-                                this.$root.$refs.Toolbar.handleClickLineDelete()
+                                this.$root.$refs.LineDeleteConfirm.handleClickLineDelete()
                             }
                             break;
                         case "c":
                             if(this.activeMode === "marker" && !this.activeMarker.picture) {
                                 //handle delete function
-                                // this.$root.$refs.TakePicture.handleCameraConfirm()
                                 this.$store.dispatch('changeDialogCameraConfirm', true);
                             }
                             break;
@@ -165,35 +164,27 @@
         },
         methods: {
             async startSession() {
-                this.$store.dispatch('changeLoading', true);
-                //test to print out the camera's current status
-                console.log("Hello");
-                this.axios.get("http://localhost:5000/test").then(response => {
-                    console.log("Hello");
+                //this.$store.dispatch('changeLoading', true);
+
+                //prevent the camera from sleeping, so set the delay option to 0 if it is not already set
+                this.axios.post("http://localhost:5000/getOptions", {optionNames: ["offDelay"]}).then(response => {
                     console.log(response);
+                    //if the setting is not set already then set the delay to it
+                    console.log(response["data"]["results"]["options"]["offDelay"])
+                    if(response["data"]["results"]["options"]["offDelay"] !== 0
+                        && response["data"]["results"]["options"]["offDelay"] !== 65535) {
+    
+                        this.axios.post("http://localhost:5000/setOptions", {options: {offDelay: 65535}}).then(response2 => {
+                            console.log(response2);
+                        }).catch(error2 => {
+                            console.log(error2);
+                        });
+                   }
                 }).catch(error => {
                     console.log(error);
                 });
-                console.log("Hello");
-                //prevent the camera from sleeping, so set the delay option to 0 if it is not already set
-                // this.axios.post("http://localhost:5000/getOptions", {optionNames: ["offDelay"]}).then(response => {
-                //     console.log(response);
-                //     //if the setting is not set already then set the delay to it
-                //     console.log(response["data"]["results"]["options"]["offDelay"])
-                //     if(response["data"]["results"]["options"]["offDelay"] !== 0
-                //         && response["data"]["results"]["options"]["offDelay"] !== 65535) {
-    
-                //         this.axios.post("http://localhost:5000/setOptions", {options: {offDelay: 0}}).then(response2 => {
-                //             console.log(response2);
-                //         }).catch(error2 => {
-                //             console.log(error2);
-                //         });
-                //     }
-                // }).catch(error => {
-                //     console.log(error);
-                // });
 
-                this.$store.dispatch('changeLoading', false);
+                //this.$store.dispatch('changeLoading', false);
             
             },
             //loads all markers and images from database if it was saved
@@ -246,15 +237,6 @@
                 let parsedCoord = JSON.parse(coordJson);
                 let jsonMarkers = parsedCoord["markers"];
                 let jsonLineSegments = parsedCoord["line_segments"];
-
-                // for(let i = 0; i < jsonMarkers.length; ++i) {
-                //     newMarkers.push({
-                //             label: jsonMarkers[i].label
-                //             ,picture: jsonMarkers[i].picture
-                //             ,lat: jsonMarkers[i].lat
-                //             ,lng: jsonMarkers[i].lng
-                //     })
-                // }
 
                 for(let i in jsonMarkers) {
                     newMarkers.push({
@@ -404,6 +386,15 @@
 
                 return index;
             },
+            checkForDoubleLines(marker1, marker2) {
+                for(let i = 0; i < this.lineSegments.length; ++i) {
+                    if((this.lineSegments[i].pt1 === marker1.label && this.lineSegments[i].pt2 === marker2.label)
+                        || (this.lineSegments[i].pt1 === marker2.label && this.lineSegments[i].pt2 === marker1.label)) {
+                        return true;
+                    }
+                }
+                return false;
+            },
             onClickMarkerHandler(marker) {
                 //set active image marker to nothing
                 console.log(marker)
@@ -411,8 +402,13 @@
                 if(this.additionMode === "lineAdd") {
                     if(this.markers.length > 1) {
                        if(this.activeMarker.label) {
-                           this.addNewSegment(this.activeMarker, marker);
-                           this.$store.dispatch('changeActiveMarker', {});
+                            if(!this.checkForDoubleLines(this.activeMarker, marker)) {
+                                this.addNewSegment(this.activeMarker, marker);
+                                this.$store.dispatch('changeActiveMarker', {});
+                            }
+                            else {
+                                this.$store.dispatch('changeActiveMarker', {});
+                            }
                        }
                        else {
                             this.$store.dispatch('changeActiveMarker', marker);
@@ -424,6 +420,7 @@
                     this.$store.dispatch('changeActiveMarker', marker);
                     this.$store.dispatch('changeActiveMode', "marker");
                 }
+                console.log(JSON.stringify(this.activeMarker));
             },
             nextUniqueId () {
                 let missingIds = [];
@@ -488,10 +485,6 @@
                     this.$store.dispatch('changeActiveMarker', this.markers[markLength-1]);
                     this.$store.dispatch('changeActiveMode', "marker");
                 }
-                // else {
-                //     this.$store.dispatch('changeActiveMarker', "");
-                //     this.$store.dispatch('changeActiveMode', "");
-                // }
             },
             async addNewSegment(marker1, marker2) {
                 console.log(marker1);

@@ -106,111 +106,15 @@
             </v-toolbar-title>
         
             <v-spacer></v-spacer>
-            <span v-if="activeMode === 'marker'" class="outer">
+            <span v-if="activeMode === 'marker' && Object.keys(activeMarker).length !== 0" class="outer">
                 <!-- Camera Image Preview -->
-                <!-- <span v-if="activeMarker.picture && !retakingPicture">
-                    <SchoolMapImagePreview />
-                </span>
-                <span v-else>
-                    <SchoolMapTakePicture />
-                </span> -->
-                    <SchoolMapCameraContainer />
+                <SchoolMapCameraContainer />
                 <!-- Delete Prompt -->
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn 
-                            class="inner"
-                            icon
-                            v-bind="attrs"
-                            v-on="on" 
-                            @click="handleClickDelete()">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                        <v-dialog
-                            v-model="dialog"
-                            width="50vh"
-                            height="100vh"
-                            @keydown.enter="handleOnDelete"
-                            @keydown.esc="dialog = false"
-                        >
-                            <v-card>
-                                <v-card-title class="headline grey lighten-2">
-                                    Are you sure you want to delete this point?
-                                </v-card-title>
-
-                                <v-divider></v-divider>
-
-                                <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                        color="primary"
-                                        text
-                                        @click="handleOnDelete"
-                                    >
-                                        Yes
-                                    </v-btn>
-                                    <v-btn
-                                        color="primary"
-                                        text
-                                        @click="dialog = false"
-                                    >
-                                        Cancel
-                                    </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-dialog>
-                    </template>
-                    <span>Delete</span>
-                </v-tooltip>
+                <SchoolMapDeleteConfirm />
             </span>
             <span v-if="activeMode === 'lineSegment'" class="outer">
                 <!-- Delete Line Segment -->
-                <v-tooltip top>
-                    <template v-slot:activator="{ on, attrs }">
-                        <v-btn 
-                            class="inner"
-                            icon
-                            v-bind="attrs"
-                            v-on="on" 
-                            @click="handleClickLineDelete()">
-                            <v-icon>mdi-delete</v-icon>
-                        </v-btn>
-                        <v-dialog
-                            v-model="dialogLine"
-                            width="50vh"
-                            height="100vh"
-                            @keydown.enter="handleOnLineDelete"
-                            @keydown.esc="dialog = false"
-                        >
-                            <v-card>
-                                <v-card-title class="headline grey lighten-2">
-                                    Are you sure you want to delete this line?
-                                </v-card-title>
-
-                                <v-divider></v-divider>
-
-                                <v-card-actions>
-                                    <v-spacer></v-spacer>
-                                    <v-btn
-                                        color="primary"
-                                        text
-                                        @click="handleOnLineDelete"
-                                    >
-                                        Yes
-                                    </v-btn>
-                                    <v-btn
-                                        color="primary"
-                                        text
-                                        @click="dialogLine = false"
-                                    >
-                                        Cancel
-                                    </v-btn>
-                                </v-card-actions>
-                            </v-card>
-                        </v-dialog>
-                    </template>
-                    <span>Delete</span>
-                </v-tooltip>
+                <SchoolMapLineDeleteConfirm />
             </span>
         </v-toolbar>
     </v-card>
@@ -218,8 +122,8 @@
 
 <script>
 
-    // import SchoolMapTakePicture from './SchoolMapTakePicture';
-    // import SchoolMapImagePreview from './SchoolMapImagePreview';
+    import SchoolMapDeleteConfirm from './delete_dialogs/SchoolMapDeleteConfirm';
+    import SchoolMapLineDeleteConfirm from './delete_dialogs/SchoolMapLineDeleteConfirm';
     import SchoolMapCameraContainer from './SchoolMapCameraContainer';
 
     export default {
@@ -227,8 +131,8 @@
             this.$root.$refs.Toolbar = this;
         },
         components: {
-            // SchoolMapTakePicture
-            // ,SchoolMapImagePreview
+            SchoolMapLineDeleteConfirm,
+            SchoolMapDeleteConfirm,
             SchoolMapCameraContainer
         },
         watch: {
@@ -259,22 +163,12 @@
 
         },
         data: () => ({
-            dialog: false
-            ,dialogLine: false
-            ,currentSelection: {label: ""}
+            currentSelection: {label: ""}
             ,mapBounds: [[0, 0], [1612.8, 806.4]]  //[5376, 2688]
         }),
         methods: {
             calculateCenter() {
                 return [this.mapBounds[0] / 2, this.mapBounds[1] / 2];
-            },
-            handleClickDelete() {
-                this.dialog = true;
-            },
-            handleOnDelete() {
-                this.dialog = false;
-
-                this.$root.$refs.Map.deleteMarker(this.activeMarker);
             },
             handleClickAddLine() {
                 console.log(this.currentSelection);
@@ -285,13 +179,6 @@
                     }
                 }
                 this.$root.$refs.Map.addNewSegment(this.activeMarker, toConnectMarker);
-            },
-            handleClickLineDelete() {
-                this.dialogLine = true; 
-            },
-            handleOnLineDelete() {
-                this.dialogLine = false;
-                this.$root.$refs.Map.deleteLineSegment(this.activeMarker);
             },
             handleChangeMode(mode) {
                 this.$store.dispatch('changeMode', mode);

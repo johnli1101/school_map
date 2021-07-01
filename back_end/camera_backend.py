@@ -565,7 +565,7 @@ def api_upload_image():
 def api_upload_camera_image():
     request_data = request.get_json();
     print(request_data);
-    
+
     filename = ntpath.basename(request_data["link"]);
     filename_split, file_extension = os.path.splitext(filename)
     filepath = app.config['UPLOAD_FOLDER'] + "camera/" + filename_split + ".jpg"

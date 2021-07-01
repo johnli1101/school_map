@@ -1,6 +1,6 @@
 <template>
     <span>
-        <span v-if="!activeMarker.picture">
+        <span v-if="!activeMarker.picture && activeMarker">
             <v-tooltip top>
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn 
@@ -15,7 +15,7 @@
                 <span>Take a Picture</span>
             </v-tooltip>
         </span>
-        <span v-else>
+        <span v-else-if="activeMarker.picture && activeMarker">
             <v-tooltip top>
                 <template v-slot:activator="{ on, attrs }">
                     <v-btn 
