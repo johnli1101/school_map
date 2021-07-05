@@ -308,17 +308,17 @@ export default {
                 //zip.folder(this.exportFilename).file('coordinates.json', data)
                 let pictureUrl = "http://localhost:8080/uploaded_assets/camera/" + pictureFilename;
                 let pictureData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: pictureUrl}, {responseType: "blob"});
-                zip.file(pictureFilename, new Blob([pictureData.data]));
+                zip.file("Images/" + pictureFilename, new Blob([pictureData.data]));
 
                 for(let j = 0; j < this.markers[i]["pictureMarkers"].length; ++j) {
                     let imageMarkerFilename = this.markers[i]["pictureMarkers"][j]["picture"].substr(this.markers[i]["pictureMarkers"][j]["picture"].lastIndexOf('/') + 1);
                     let imageMarkerUrl = "http://localhost:8080/uploaded_assets/markers/" + imageMarkerFilename;
                     let imageMarkerData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: imageMarkerUrl}, {responseType: "blob"});
-                    zip.file(imageMarkerFilename, new Blob([imageMarkerData.data]));
+                    zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
                 }
             }
             //zip.file(pictureFilename, pictureData.data, {binary: true});
-            zip.file('coordinates.json', data);
+            zip.file('Images/coordinates.json', data);
             zip.generateAsync({type:'blob'}) 
                 .then(function(blob){ 
                     FileSaver.saveAs(blob, zipFilename + ".zip"); 
