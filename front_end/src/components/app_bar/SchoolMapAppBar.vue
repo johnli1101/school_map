@@ -9,7 +9,7 @@
             <v-toolbar-title>学校の地図</v-toolbar-title>
 
             <v-spacer></v-spacer>
-            <SchoolMapSaveButton class="right-buttons"  />
+            <!-- <SchoolMapSaveButton class="right-buttons"  /> -->
             <SchoolMapClearButton class="right-buttons"  />
             <SchoolMapExport class="right-buttons" />
             <SchoolMapImport @on-import-json="importedJson($event)" class="right-buttons" />
@@ -22,12 +22,16 @@
     import SchoolMapImport from './SchoolMapImport';
     import SchoolMapExport from './SchoolMapExport';
     import SchoolMapImportMap from './SchoolMapImportMap';
-    import SchoolMapSaveButton from './SchoolMapSaveButton';
+    //import SchoolMapSaveButton from './SchoolMapSaveButton';
     import SchoolMapClearButton from './SchoolMapClearButton';
 
     export default {
         components: {
-            SchoolMapImport, SchoolMapExport, SchoolMapImportMap, SchoolMapSaveButton, SchoolMapClearButton
+            SchoolMapImport, 
+            SchoolMapExport, 
+            SchoolMapImportMap, 
+            //SchoolMapSaveButton, 
+            SchoolMapClearButton
         },
         props: {
 

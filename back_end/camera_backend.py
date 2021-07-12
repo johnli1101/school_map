@@ -132,7 +132,7 @@ def api_save():
     cur.execute("DELETE FROM line_segments")
     cur.execute("DELETE FROM image_markers")
     cur.execute("DELETE FROM markers")
-    cur.execute("DELETE FROM map_settings")
+    #cur.execute("DELETE FROM map_settings")
 
     #inserting marker array
     for marker in request_data["markers"]:
@@ -163,11 +163,12 @@ def api_save():
 
         cur.execute("INSERT INTO line_segments(pt1, pt2, coord1_lat, coord1_lng, coord2_lat, coord2_lng) VALUES (%s, %s, %s, %s, %s, %s)", (pt1, pt2, coord1_lat, coord1_lng, coord2_lat, coord2_lng))
 
-    map_image = request_data["map_settings"]["map_image"]
-    map_height = request_data["map_settings"]["map_height"]
-    map_width = request_data["map_settings"]["map_width"]
+    # if request_data["map_settings"]:
+    #     map_image = request_data["map_settings"]["map_image"]
+    #     map_height = request_data["map_settings"]["map_height"]
+    #     map_width = request_data["map_settings"]["map_width"]
 
-    cur.execute("INSERT INTO map_settings(map_image, map_height, map_width) VALUE(%s, %s, %s)", (map_image, map_height, map_width))
+    #     cur.execute("INSERT INTO map_settings(map_image, map_height, map_width) VALUE(%s, %s, %s)", (map_image, map_height, map_width))
 
     mysql.connection.commit()
     cur.close()
@@ -287,6 +288,7 @@ def api_load():
     cur.execute("SELECT map_image, map_height, map_width from map_settings LIMIT 1")
 
     map_settings = []
+    temp_map_obj = {"mapImageURL": "", "mapBounds": []}
     print(cur)
     for row in cur:
         print(row)

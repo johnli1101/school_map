@@ -15,13 +15,11 @@
                 outlined
                 dense
                 v-model="currentFile"
-                :value="replacementValue"
                 @change="handleOnFileChange"
-                @click="handleResetInput"
-                :clearable="true" 
-                ref="file"
+                ref="fileInput"
             ></v-file-input>
             <v-img
+                v-if="fileUrl"
                 class="cameraPicture"
                 :src="fileUrl"
                 lazy-src=""
@@ -88,14 +86,8 @@
             dialog: false,
             currentFile: [],
             fileUrl: "",
-            replacementValue: "",
         }),
         methods: {
-            handleResetInput(event) {
-                console.log(event.target.value);
-                this.replacementValue = null;
-                
-            },
             handleUploadImage() {
                 console.log();
                 let file = this.currentFile;
@@ -114,20 +106,18 @@
                 
                 this.currentFile = [];
                 this.fileUrl = "";
-                this.replacementValue = null;
                 this.$store.dispatch('changeDialogUploadImage', false);
             },
-            handleOnFileChange(file) {
-                console.log(JSON.stringify(file));
-                if(file !== null) {
-                    this.currentfile = file;
-                    //this.replacementValue = file;
-                    this.fileUrl = URL.createObjectURL(file);
+            handleOnFileChange(event) {
+                console.log(event);
+                if(event !== null) {
+                    this.currentfile = event;
+                    this.fileUrl = URL.createObjectURL(event);
+                    console.log(event);
                 }
             },
             handleCloseUpload() {
                 this.currentFile = [];
-                this.replacementValue = null;
                 this.fileUrl = "";
                 this.$store.dispatch('changeDialogUploadImage', false);
                 this.$emit("delete-last-marker");

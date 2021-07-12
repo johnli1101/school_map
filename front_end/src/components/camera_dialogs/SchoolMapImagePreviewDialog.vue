@@ -344,9 +344,8 @@ export default {
                 markerToChange: this.activeMarker,
                 imageMarker: this.activeMarker["pictureMarkers"][imageMarkerLength-1]
             }
-            this.activeImageMarker = {};
-            this.$store.dispatch('changeActiveImageMarker', {})
             this.$store.dispatch('deleteImageMarker', payload);
+            this.$store.dispatch('changeActiveImageMarker', {})
         },
         nextUniqueId () {
             let missingIds = [];

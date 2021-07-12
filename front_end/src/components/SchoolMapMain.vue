@@ -231,12 +231,13 @@
             calculateCenter() {
                 return [this.mapBounds[0] / 2, this.mapBounds[1] / 2];
             },
-            importedJson(coordJson) {
+            async importedJson(coordJson) {
                 let newMarkers = [];
                 let newLineSegments = [];
                 let parsedCoord = JSON.parse(coordJson);
                 let jsonMarkers = parsedCoord["markers"];
                 let jsonLineSegments = parsedCoord["line_segments"];
+                //let jsonMap = parsedCoord["map_file_path"];
 
                 for(let i in jsonMarkers) {
                     newMarkers.push({
@@ -260,25 +261,31 @@
 
                 console.log(newLineSegments);
 
+                
+                // this.$store.dispatch('changeMapImageUrl', jsonMap);
+                // this.$store.dispatch('changeMapBounds', json)
                 this.$store.dispatch('setNewMarkersList', newMarkers);
                 this.$store.dispatch('setNewLineSegmentsList', newLineSegments);
                 this.$store.dispatch('changeActiveMarker', {});                
 
+                this.$store.dispatch('changeLoading', true);
+                console.log(this.mapImageURL);
+
                 let payload = {
                     markers: newMarkers
                     ,line_segments: newLineSegments
-                    ,map_settings: {
-                        map_image: this.mapImageURL
-                        ,map_height: this.mapBounds[0]
-                        ,map_width: this.mapBounds[1]
-                    }
+                    // ,map_settings: {
+                    //     map_image: this.mapImageURL
+                    //     ,map_height: this.mapBounds[0]
+                    //     ,map_width: this.mapBounds[1]
+                    // }
                 }
-                this.axios.post("http://localhost:5000/save", payload).then(response => {
+                await this.axios.post("http://localhost:5000/save", payload).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);
                 });  
-
+                this.$store.dispatch('changeLoading', false);
             },
             onClickPolyLine(event) {
                 if(!this.additionMode) {

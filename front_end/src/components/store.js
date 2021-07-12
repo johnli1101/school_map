@@ -154,14 +154,17 @@ export default new Vuex.Store({
     actions: {
         // ----  for changing map bounds, map image url, and map image name ----
         changeMapBounds (context, newBounds) {
-            if((newBounds[0] === 0 && newBounds[1] === 0) || newBounds[0] === null || newBounds[1] === null) {
+            console.log(newBounds);
+            if((newBounds[0] === 0 && newBounds[1] === 0) || newBounds[0] === null || newBounds[1] === null || newBounds.length !== 2) {
                 context.commit('changeMapBounds', [700, 1200]);
             }
             else {
+                console.log("HELLO");
                 context.commit('changeMapBounds', newBounds);
             }
         },
         changeMapImageUrl(context, newUrl) {
+            console.log(newUrl);
             if(newUrl === "" || newUrl === null) {
                 context.commit('changeMapImageUrl', require('./doushishaRyokanBldg.jpg'));
             }

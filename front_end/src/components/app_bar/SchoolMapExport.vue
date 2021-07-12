@@ -363,7 +363,7 @@ export default {
                     }
                 }
 
-                newCoordJson["map_file_path"] = this.mapImageURL;
+                //newCoordJson["map_file_path"] = this.mapImageURL;
                 
                 console.log(newCoordJson);
                 this.exportJson(newCoordJson, this.exportFilename);
