@@ -94,7 +94,7 @@
                 img.onload = () => {
                     console.log(img.width + " " + img.height);
 
-                    this.$store.dispatch('clearAllMarkersAndSegments');
+                    //this.$store.dispatch('clearAllMarkersAndSegments');
                     
                     this.updateMapDatabase(file, img);
                 }
@@ -108,11 +108,11 @@
                 this.$store.dispatch('changeLoading', true);
 
                 //clear all markers first
-                await this.axios.post("http://localhost:5000/clear").then(response => {
-                    console.log(response);
-                }).catch(error => {
-                    console.log(error);
-                });
+                // await this.axios.post("http://localhost:5000/clear").then(response => {
+                //     console.log(response);
+                // }).catch(error => {
+                //     console.log(error);
+                // });
                 
                 //upload map image
                 let newFilename = "";
