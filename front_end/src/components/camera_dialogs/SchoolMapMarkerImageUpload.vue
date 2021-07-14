@@ -104,7 +104,7 @@
                 }
                 img.src = file;
                 
-                this.currentFile = [];
+                this.currentFile = null;
                 this.fileUrl = "";
                 this.$store.dispatch('changeDialogUploadImage', false);
             },
@@ -117,7 +117,7 @@
                 }
             },
             handleCloseUpload() {
-                this.currentFile = [];
+                this.currentFile = null;
                 this.fileUrl = "";
                 this.$store.dispatch('changeDialogUploadImage', false);
                 this.$emit("delete-last-marker");

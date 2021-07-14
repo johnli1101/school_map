@@ -185,37 +185,37 @@ def api_clear():
     cur.execute("DELETE FROM line_segments")
 
     #delete all image_marker images
-    cur.execute("SELECT picture from image_markers")
+    #cur.execute("SELECT picture from image_markers")
 
     #run through image markers
-    for row in cur: 
-        if row[0]:
-            my_file = Path(row[0])
-            if my_file.is_file():
-                os.remove(row[0])
+    # for row in cur: 
+    #     if row[0]:
+    #         my_file = Path(row[0])
+    #         if my_file.is_file():
+    #             os.remove(row[0])
 
     cur.execute("DELETE FROM image_markers")
 
     #delete all marker images
-    cur.execute("SELECT picture from markers")
+    #cur.execute("SELECT picture from markers")
 
     #run through markers
-    for row in cur: 
-        if row[0]:
-            my_file = Path(row[0])
-            if my_file.is_file():
-                os.remove(row[0])
+    # for row in cur: 
+    #     if row[0]:
+    #         my_file = Path(row[0])
+    #         if my_file.is_file():
+    #             os.remove(row[0])
 
     cur.execute("DELETE FROM markers")
 
     #revert map
 
     cur.execute("SELECT map_image FROM map_settings");
-    for row in cur: 
-        if row[0]:
-            my_file = Path(row[0])
-            if my_file.is_file():
-                os.remove(row[0])
+    # for row in cur: 
+    #     if row[0]:
+    #         my_file = Path(row[0])
+    #         if my_file.is_file():
+    #             os.remove(row[0])
 
     cur.execute("DELETE FROM map_settings")
     cur.execute("INSERT INTO map_settings(map_image, map_height, map_width) VALUES ('', 0, 0)")
@@ -389,8 +389,8 @@ def api_delete_marker():
     picture = request_data["picture"]
 
     #remove the picture from the folders directory
-    if picture:
-        os.remove(picture)
+    # if picture:
+    #     os.remove(picture)
 
     #remove all the image_markers that belong to this marker
     cur.execute("DELETE FROM image_markers WHERE marker_label = %s", (label,))
@@ -458,8 +458,8 @@ def api_delete_image_marker():
     picture = request_data["picture"]
 
     #remove the picture from the folders directory
-    if picture:
-        os.remove(picture)
+    # if picture:
+    #     os.remove(picture)
 
     #remove the marker from the database
     cur.execute("DELETE FROM image_markers WHERE label = %s AND marker_label = %s", (label, marker_label))
