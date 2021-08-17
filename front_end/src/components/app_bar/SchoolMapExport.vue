@@ -346,18 +346,22 @@ export default {
                     let imageMarkerUrl = "http://" + this.localHostName + "/uploaded_assets/markers/" + imageMarkerFilename;
                     let fileExtension = imageMarkerFilename.replace(/\.[^/.]+$/, "");
                     console.log(fileExtension);
-                    let imageMarkerData = await axios.post("http://" + this.databaseLocalHost + "/downloadPhoto", {fileUrl: imageMarkerUrl}, {responseType: "blob"})
-                        .then(response => {
-                            console.log(response);
-                            return response;
+                    //TODO: THIS IS TEMP!!!
+                    if(!this.markers[i]["pictureMarkers"][j]["picture"].match(/\b(https?:\/\/\S*\b)/g)) 
+                    {
+                        let imageMarkerData = await axios.post("http://" + this.databaseLocalHost + "/downloadPhoto", {fileUrl: imageMarkerUrl}, {responseType: "blob"})
+                            .then(response => {
+                                console.log(response);
+                                return response;
 
-                        }).catch(error => {
-                            console.log(error);
-                        });
-                    if(fileExtension === "pdf") {
-                        zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
-                    } else {
-                        zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
+                            }).catch(error => {
+                                console.log(error);
+                            });
+                        if(fileExtension === "pdf") {
+                            zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
+                        } else {
+                            zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
+                        }
                     }
                 }
             }

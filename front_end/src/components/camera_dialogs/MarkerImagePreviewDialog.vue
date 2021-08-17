@@ -16,6 +16,7 @@
                 type="video/webm"
                 :src="getImageMarkerPicture()"
             />
+            <a v-else-if="checkFileType(this.activeImageMarker.picture) === 'url'" :href="this.activeImageMarker.picture">{{ this.activeImageMarker.picture }}</a>
             <v-img
                 v-else
                 class="cameraPicture"
@@ -98,13 +99,29 @@ export default {
         activeImageMarker: function () {
             let fileType = this.activeImageMarker.picture.split('.').pop();
             console.log(fileType);
-            this.fileType = fileType;
+            if(this.activeImageMarker.picture.match(/\b(https?:\/\/\S*\b)/g)) 
+            {
+                this.fileType = "url";
+            }
+            else {
+                this.fileType = fileType;
+            }
+            console.log(fileType);
         }
     },
     props: {
 
     },
     methods: {
+        //this is temp
+        checkFileType(file) {
+            let fileType = "";
+            if(file.match(/\b(https?:\/\/\S*\b)/g)) 
+            {
+                fileType = "url";
+            }
+            return fileType
+        },
         getImageMarkerPicture() {
 
             if(this.activeImageMarker.picture) {

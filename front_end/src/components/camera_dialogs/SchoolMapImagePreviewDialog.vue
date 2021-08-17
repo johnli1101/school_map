@@ -241,16 +241,16 @@ export default {
         },
         async uploadImageUrl(fileUrl) {
             this.$store.dispatch('changeLoading', true);
-            let newFilePath = "";
-            console.log(fileUrl);
-            await this.axios.post("http://" + this.databaseLocalHost + "/uploadImageUrl", {link: fileUrl}).then(response => {
-                console.log(response);
-                newFilePath = response["data"];
-            }).catch(error => {
-                console.log(error);
-                return;
-            });
-            console.log(newFilePath);
+            // let newFilePath = "";
+            // console.log(fileUrl);
+            // await this.axios.post("http://" + this.databaseLocalHost + "/uploadImageUrl", {link: fileUrl}).then(response => {
+            //     console.log(response);
+            //     newFilePath = response["data"];
+            // }).catch(error => {
+            //     console.log(error);
+            //     return;
+            // });
+            // console.log(newFilePath);
             this.changeImageMarkerImage(fileUrl, this.activeImageMarker, "image");
             this.$store.dispatch('changeLoading', false);
         },

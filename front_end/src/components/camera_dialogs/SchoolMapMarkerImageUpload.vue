@@ -35,25 +35,14 @@
                 v-if="fileRadio === 'file'"
             ></v-file-input>
             <v-row v-else-if="fileRadio === 'url'">
-                <v-col :cols="8">
-                    <v-text-field
-                        label="Regular"
-                        placeholder="URL to Image"
-                        v-model="fileInput"
-                    ></v-text-field>
-                </v-col>
-                <v-col :cols="4">
-                    <v-btn
-                        color="primary"
-                        text
-                        @click="handleConfirmUrl()"
-                    >
-                        Check
-                    </v-btn>
-                </v-col>
+                <v-text-field
+                    label="Regular"
+                    placeholder="URL to Image"
+                    v-model="fileInput"
+                ></v-text-field>
             </v-row>
             <v-img
-                v-if="(fileType === 'image' && fileUrl) || (fileRadio === 'url' && fileUrl)"
+                v-if="(fileType === 'image' && fileUrl)"
                 class="cameraPicture"
                 :src="fileUrl"
                 lazy-src=""
@@ -160,11 +149,6 @@
                 this.fileType = "";
                 this.fileInput = "";
                 this.$store.dispatch('changeDialogUploadImage', false);
-            },
-            handleConfirmUrl() {
-                console.log("")
-                this.fileUrl = this.fileInput;
-                console.log(this.fileUrl);
             },
             handleRadioChange(event) {
                 console.log(event);
