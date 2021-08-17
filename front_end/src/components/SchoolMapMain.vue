@@ -102,6 +102,12 @@
             },
             keyListen() {
                 return this.$store.state.keyListen;
+            },
+            databaseLocalHost() {
+                return this.$store.state.databaseLocalHost;
+            },
+            localHostName() {
+                return this.$store.state.localHostName;
             }
         },
         data: () => ({
@@ -167,14 +173,14 @@
                 //this.$store.dispatch('changeLoading', true);
 
                 //prevent the camera from sleeping, so set the delay option to 0 if it is not already set
-                this.axios.post("http://localhost:5000/getOptions", {optionNames: ["offDelay"]}).then(response => {
+                this.axios.post("http://" + this.databaseLocalHost + "/getOptions", {optionNames: ["offDelay"]}).then(response => {
                     console.log(response);
                     //if the setting is not set already then set the delay to it
                     console.log(response["data"]["results"]["options"]["offDelay"])
                     if(response["data"]["results"]["options"]["offDelay"] !== 0
                         && response["data"]["results"]["options"]["offDelay"] !== 65535) {
     
-                        this.axios.post("http://localhost:5000/setOptions", {options: {offDelay: 65535}}).then(response2 => {
+                        this.axios.post("http://" + this.databaseLocalHost + "/setOptions", {options: {offDelay: 65535}}).then(response2 => {
                             console.log(response2);
                         }).catch(error2 => {
                             console.log(error2);
@@ -190,7 +196,8 @@
             //loads all markers and images from database if it was saved
             async loadFromDatabase() {
                 this.$store.dispatch('changeLoading', true);
-                await this.axios.get("http://localhost:5000/load").then(response => {
+                console.log("Hello");
+                await this.axios.get("http://" + this.databaseLocalHost + "/load").then(response => {
                     console.log(response);
                     this.$store.dispatch('setNewMarkersList', response["data"]["markers"]);
                     this.$store.dispatch('setNewLineSegmentsList', response["data"]["line_segments"]);
@@ -280,7 +287,7 @@
                     //     ,map_width: this.mapBounds[1]
                     // }
                 }
-                await this.axios.post("http://localhost:5000/save", payload).then(response => {
+                await this.axios.post("http://" + this.databaseLocalHost + "/save", payload).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);
@@ -326,7 +333,7 @@
                 console.log(lineSegment);
 
                 this.$store.dispatch('deleteFromLineSegments', lineSegment);
-                await this.axios.post("http://localhost:5000/deleteLineSegment", lineSegment).then(response => {
+                await this.axios.post("http://" + this.databaseLocalHost + "/deleteLineSegment", lineSegment).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);
@@ -361,7 +368,7 @@
                     // -------------------------------------------------------
 
                     this.$store.dispatch('deleteFromLineSegments', this.lineSegments[toDeleteIndexes[i]]);
-                    await this.axios.post("http://localhost:5000/deleteLineSegment", tempLineSegment).then(response => {
+                    await this.axios.post("http://" + this.databaseLocalHost + "/deleteLineSegment", tempLineSegment).then(response => {
                         console.log(response);
                     }).catch(error => {
                         console.log(error);
@@ -370,7 +377,7 @@
 
                 //after fixing all of it now delete the point
                 this.$store.dispatch('deleteFromMarkers', marker);
-                await this.axios.post("http://localhost:5000/deleteMarker", marker).then(response => {
+                await this.axios.post("http://" + this.databaseLocalHost + "/deleteMarker", marker).then(response => {
                         console.log(response);
                     }).catch(error => {
                         console.log(error);
@@ -470,7 +477,7 @@
                     console.log(newMarker);
                     this.$store.dispatch('addToMarkers', newMarker);
                     this.$store.dispatch('changeLoading', true);
-                    await this.axios.post("http://localhost:5000/addMarker", newMarker).then(response => {
+                    await this.axios.post("http://" + this.databaseLocalHost + "/addMarker", newMarker).then(response => {
                         console.log(response);
                         
                     }).catch(error => {
@@ -498,7 +505,7 @@
                 console.log(marker2);
                 let newLineObject = {pt1: marker1.label, pt2: marker2.label, coord: [[marker1.lat, marker1.lng], [marker2.lat, marker2.lng]]};
                 this.$store.dispatch('addToLineSegments', newLineObject);   
-                this.axios.post("http://localhost:5000/addLineSegment", newLineObject).then(response => {
+                this.axios.post("http://" + this.databaseLocalHost + "/addLineSegment", newLineObject).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);
@@ -550,7 +557,7 @@
                         this.$store.dispatch('updateLineByIndexCoord', payload);
 
                         databaseLineSegment.coord[0] = newCoordinates; 
-                        await this.axios.post("http://localhost:5000/updateLineSegment", databaseLineSegment).then(response => {
+                        await this.axios.post("http://" + this.databaseLocalHost + "/updateLineSegment", databaseLineSegment).then(response => {
                             console.log(response);
                         }).catch(error => {
                             console.log(error);
@@ -565,7 +572,7 @@
                         this.$store.dispatch('updateLineByIndexCoord', payload);
 
                         databaseLineSegment.coord[1] = newCoordinates;
-                        await this.axios.post("http://localhost:5000/updateLineSegment", databaseLineSegment).then(response => {
+                        await this.axios.post("http://" + this.databaseLocalHost + "/updateLineSegment", databaseLineSegment).then(response => {
                             console.log(response);
                         }).catch(error => {
                             console.log(error);
@@ -585,7 +592,7 @@
                 let databaseMarker = this.activeMarker;
                 databaseMarker["lat"] = newCoordinates[0];
                 databaseMarker["lng"] = newCoordinates[1];
-                await this.axios.post("http://localhost:5000/updateMarker", this.activeMarker).then(response => {
+                await this.axios.post("http://" + this.databaseLocalHost + "/updateMarker", this.activeMarker).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);

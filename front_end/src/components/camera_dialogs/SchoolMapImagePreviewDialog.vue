@@ -99,7 +99,7 @@
                 </v-card-actions>
             </v-card>
         </v-dialog>
-        <SchoolMapMarkerImageUpload @upload-image="uploadImage($event)" @delete-last-marker="deleteLastMarker()"/>
+        <SchoolMapMarkerImageUpload @upload-image="uploadImage($event)" @upload-image-url="uploadImageUrl($event)" @upload-app="uploadApp($event)" @delete-last-marker="deleteLastMarker()"/>
         <MarkerImagePreviewDialog @delete-marker="deleteCurrentMarker()" />
     </span>
 </template>
@@ -148,6 +148,12 @@ export default {
         dialogUploadImage: false,
     }),
     computed: {
+        localHostName() {
+            return this.$store.state.localHostName;
+        },
+        databaseLocalHost() {
+            return this.$store.state.databaseLocalHost;
+        },
         activeMarker() {
             return this.$store.state.activeMarker;
         },
@@ -184,7 +190,7 @@ export default {
                 let filename = this.activeMarker.picture.substr(this.activeMarker.picture.lastIndexOf('/') + 1);
                 console.log(filename);
 
-                return "http://localhost:8080/uploaded_assets/camera/" + filename;
+                return "http://" + this.localHostName +"/uploaded_assets/camera/" + filename;
             }
             return "";
         },
@@ -200,7 +206,7 @@ export default {
 
             this.$store.dispatch('changeLoading', true);
             toDeleteImageMarker["marker_label"] = this.activeMarker["label"];
-            await this.axios.post("http://localhost:5000/deleteImageMarker", toDeleteImageMarker).then(response => {
+            await this.axios.post("http://" + this.databaseLocalHost + "/deleteImageMarker", toDeleteImageMarker).then(response => {
                 console.log(response);
             }).catch(error => {
                 console.log(error);
@@ -226,22 +232,36 @@ export default {
             newImageMarker["lat"] = e.target._latlng.lat;
             newImageMarker["lng"] = e.target._latlng.lng;
             newImageMarker["marker_label"] = this.activeMarker["label"];
-            await this.axios.post("http://localhost:5000/updateImageMarker", newImageMarker).then(response => {
+            await this.axios.post("http://" + this.databaseLocalHost + "/updateImageMarker", newImageMarker).then(response => {
                 console.log(response);
             }).catch(error => {
                 console.log(error);
             });
             this.$store.dispatch('changeLoading', false);
         },
+        async uploadImageUrl(fileUrl) {
+            this.$store.dispatch('changeLoading', true);
+            let newFilePath = "";
+            console.log(fileUrl);
+            await this.axios.post("http://" + this.databaseLocalHost + "/uploadImageUrl", {link: fileUrl}).then(response => {
+                console.log(response);
+                newFilePath = response["data"];
+            }).catch(error => {
+                console.log(error);
+                return;
+            });
+            console.log(newFilePath);
+            this.changeImageMarkerImage(fileUrl, this.activeImageMarker, "image");
+            this.$store.dispatch('changeLoading', false);
+        },
         //using this functino assumes that you already have an active marker
-        async uploadImage(payload) {
+        async uploadImage(fileObj) {
             //let imageUrl = payload[1]
-            let fileObj = payload[0]
-            console.log(payload[1])
-            console.log(JSON.stringify(payload[0]));
+            //console.log(payload[1])
+            console.log(JSON.stringify(fileObj));
             let newFilename = await this.uploadImageToFileSystem(fileObj);
             console.log(newFilename);
-            this.changeImageMarkerImage(newFilename, this.activeImageMarker);
+            this.changeImageMarkerImage(newFilename, this.activeImageMarker, "url");
             console.log(this.activeMarker);
             this.$store.dispatch('updateImageVariable', false);
             //this.$store.dispatch('changeDialogImageMarkerPreview', true);
@@ -253,7 +273,7 @@ export default {
             data.append('file', file);
             // data.append('folder', "markers");
             console.log(data);
-            await this.axios.post("http://localhost:5000/uploadImage", data, {
+            await this.axios.post("http://" + this.databaseLocalHost + "/uploadImage", data, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
@@ -279,15 +299,16 @@ export default {
             let newImageMarker = imageMarker;
             newImageMarker["picture"] = imageUrl;
             newImageMarker["marker_label"] = this.activeMarker["label"]
+            console.log(imageUrl);
             if(this.updateImageMarkerMode) {
-                await this.axios.post("http://localhost:5000/updateImageMarker", newImageMarker).then(response => {
+                await this.axios.post("http://" + this.databaseLocalHost + "/updateImageMarker", newImageMarker).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);
                 });            
             }
             else {
-                await this.axios.post("http://localhost:5000/addImageMarker", newImageMarker).then(response => {
+                await this.axios.post("http://" + this.databaseLocalHost + "/addImageMarker", newImageMarker).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);
@@ -417,8 +438,8 @@ export default {
             console.log(filename);
 
             this.$store.dispatch('changeLoading', true);
-            let pictureUrl = "http://localhost:8080/uploaded_assets/camera/" + filename;
-            let response = await this.axios.post("http://localhost:5000/downloadPhoto", {fileUrl: pictureUrl}, {responseType: "blob"});
+            let pictureUrl = "http://" + this.localHostName + "/uploaded_assets/camera/" + filename;
+            let response = await this.axios.post("http://" + this.databaseLocalHost + "/downloadPhoto", {fileUrl: pictureUrl}, {responseType: "blob"});
 
             // console.log(response);
             var fileURL = window.URL.createObjectURL(new Blob([response.data]));

@@ -10,7 +10,14 @@
             <v-card-title class="headline grey lighten-2">
                 Image Marker: {{activeImageMarker.label}}
             </v-card-title>
+            <embed
+                v-if="fileType === 'pdf'"
+                class="pdf-class"
+                type="video/webm"
+                :src="getImageMarkerPicture()"
+            />
             <v-img
+                v-else
                 class="cameraPicture"
                 :src="getImageMarkerPicture()"
                 lazy-src=""
@@ -73,14 +80,25 @@ export default {
 
     },
     data: () => ({
-
+        fileType: ""
     }),
     computed: {
+        localHostName() {
+            return this.$store.state.localHostName;
+        },
         activeImageMarker() {
             return this.$store.state.activeImageMarker;
         },
         dialogImageMarkerPreview() {
             return this.$store.state.dialogImageMarkerPreview;
+        }
+    },
+    watch: {
+        //use this watcher to set the file type in order to know what to display
+        activeImageMarker: function () {
+            let fileType = this.activeImageMarker.picture.split('.').pop();
+            console.log(fileType);
+            this.fileType = fileType;
         }
     },
     props: {
@@ -90,10 +108,11 @@ export default {
         getImageMarkerPicture() {
 
             if(this.activeImageMarker.picture) {
+                console.log(this.activeImageMarker.picture)
                 let filename = this.activeImageMarker.picture.substr(this.activeImageMarker.picture.lastIndexOf('/') + 1);
                 console.log(filename);
                 
-                return "http://localhost:8080/uploaded_assets/markers/" + filename;
+                return "http://" + this.localHostName + "/uploaded_assets/markers/" + filename;
             }
             return "";
         },
@@ -114,5 +133,9 @@ export default {
 </script>
 
 <style scoped>
-
+    .pdf-class {
+        max-height: 50rem; 
+        min-height: 40rem;
+        width: 100%;
+    }
 </style>

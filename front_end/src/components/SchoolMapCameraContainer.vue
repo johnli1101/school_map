@@ -50,6 +50,9 @@ export default {
         currentPicture: ""
     }),
     computed: {
+        databaseLocalHost() {
+            return this.$store.state.databaseLocalHost;
+        },
         additionMode() {
             return this.$store.state.additionMode;
         },
@@ -90,7 +93,7 @@ export default {
         },
         async takePicture() {
             this.$store.dispatch('changeLoading', true);
-            let response = await this.axios.post("http://localhost:5000/takePicture");
+            let response = await this.axios.post("http://" + this.databaseLocalHost + "/takePicture");
             console.log(response);
             let pictureId = response["data"]["id"];
             let pictureStatus = await this.waitForFunction(pictureId);
@@ -105,7 +108,7 @@ export default {
             let statusResponse = {};
             while(!whileLoopStatus) {
                 await new Promise(r => setTimeout(r, 2000));
-                statusResponse = await this.axios.post("http://localhost:5000/pictureStatus", {id: pictureId});
+                statusResponse = await this.axios.post("http://" + this.databaseLocalHost + "/pictureStatus", {id: pictureId});
                 console.log(statusResponse);
                 if(statusResponse["data"]["state"] === "done") {
                     whileLoopStatus = true;

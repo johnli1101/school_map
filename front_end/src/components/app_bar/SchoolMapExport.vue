@@ -98,6 +98,12 @@ export default {
         },
         mapImageName() {
             return this.$store.state.mapImageName;
+        },
+        databaseLocalHost() {
+            return this.$store.state.databaseLocalHost;
+        },
+        localHostName() {
+            return this.$store.state.localHostName;
         }
     },
     components: {
@@ -195,7 +201,7 @@ export default {
             // Fetch the image and parse the response stream as a blob
             console.log(this.activeMarker.picture);
             let picturetest = this.activeMarker.picture;
-            const imageBlob = await axios.post("http://localhost:5000/downloadPhoto2", {fileUrl: picturetest}, {responseType: "blob"});
+            const imageBlob = await axios.post("http://" + this.databaseLocalHost + "/downloadPhoto2", {fileUrl: picturetest}, {responseType: "blob"});
 
             // create a new file from the blob object
             const imgData = new File([imageBlob], 'filename.jpg');
@@ -235,6 +241,10 @@ export default {
                 let newLineObject = {};
                 let newMarkerObject = {};
                 let tempImageMarkerArr = [];
+                let tempInfoArray = [];
+                let tempUrlArray = [];
+
+
 
                 //gather all the marker points
                 for(let i = 0; i < this.markers.length; ++i) {
@@ -245,15 +255,35 @@ export default {
                             ,this.markers[i].lng
                         ];
 
+                    tempInfoArray = [];
+                    tempUrlArray = [];
                     for(let j = 0; j < this.markers[i]["pictureMarkers"].length; ++j) {
                         tempImageMarkerArr = [
                                 this.markers[i]["pictureMarkers"][j].picture
                                 ,this.markers[i]["pictureMarkers"][j].lat
                                 ,this.markers[i]["pictureMarkers"][j].lng
                             ];
-                        newMarkerObject[filename].push(tempImageMarkerArr);
+                        //let regEx = /\b(https?:\/\/\S*\b)/g;
+                        //console.log(str.match(regEx));
+                        if(this.markers[i]["pictureMarkers"][j].picture.match(/\b(https?:\/\/\S*\b)/g)) 
+                        {
+                            // console.log("Hello");
+                            // newMarkerObject[filename]["URL"].push(tempImageMarkerArr);
+                            tempUrlArray.push(tempImageMarkerArr);
+                        } else 
+                        {
+                            // console.log("I'm info");
+                            // newMarkerObject[filename]["info"].push(tempImageMarkerArr);
+                            tempInfoArray.push(tempImageMarkerArr);
+                        }
                     }
-                    
+                    if( tempUrlArray.length > 0) {
+                        newMarkerObject[filename].push({"URL": tempUrlArray});
+                    }
+                    if( tempInfoArray.length > 0) {
+                        newMarkerObject[filename].push({"Info": tempInfoArray});
+                    }
+                    console.log(newMarkerObject);
                     tempMarkerObject[this.markers[i].label] = filename;
                     tempLineObject[this.markers[i].label] = [];
                 }
@@ -293,6 +323,7 @@ export default {
         },
         async zipFiles(newCoordJson) {
             this.$store.dispatch('changeLoading', true);
+            console.log(newCoordJson);
             const data = JSON.stringify(newCoordJson, null, 2)
             console.log(data);
             
@@ -306,15 +337,28 @@ export default {
                 console.log(this.markers[i].picture);
                 
                 //zip.folder(this.exportFilename).file('coordinates.json', data)
-                let pictureUrl = "http://localhost:8080/uploaded_assets/camera/" + pictureFilename;
-                let pictureData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: pictureUrl}, {responseType: "blob"});
+                let pictureUrl = "http://" + this.localHostName + "/uploaded_assets/camera/" + pictureFilename;
+                let pictureData = await axios.post("http://" + this.databaseLocalHost + "/downloadPhoto", {fileUrl: pictureUrl}, {responseType: "blob"});
                 zip.file("Images/" + pictureFilename, new Blob([pictureData.data]));
 
                 for(let j = 0; j < this.markers[i]["pictureMarkers"].length; ++j) {
                     let imageMarkerFilename = this.markers[i]["pictureMarkers"][j]["picture"].substr(this.markers[i]["pictureMarkers"][j]["picture"].lastIndexOf('/') + 1);
-                    let imageMarkerUrl = "http://localhost:8080/uploaded_assets/markers/" + imageMarkerFilename;
-                    let imageMarkerData = await axios.post("http://localhost:5000/downloadPhoto", {fileUrl: imageMarkerUrl}, {responseType: "blob"});
-                    zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
+                    let imageMarkerUrl = "http://" + this.localHostName + "/uploaded_assets/markers/" + imageMarkerFilename;
+                    let fileExtension = imageMarkerFilename.replace(/\.[^/.]+$/, "");
+                    console.log(fileExtension);
+                    let imageMarkerData = await axios.post("http://" + this.databaseLocalHost + "/downloadPhoto", {fileUrl: imageMarkerUrl}, {responseType: "blob"})
+                        .then(response => {
+                            console.log(response);
+                            return response;
+
+                        }).catch(error => {
+                            console.log(error);
+                        });
+                    if(fileExtension === "pdf") {
+                        zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
+                    } else {
+                        zip.file("Images/" + imageMarkerFilename, new Blob([imageMarkerData.data]));
+                    }
                 }
             }
             //zip.file(pictureFilename, pictureData.data, {binary: true});

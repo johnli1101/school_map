@@ -10,6 +10,21 @@
             <v-card-title class="headline grey lighten-2">
                 Please select an image to upload to this marker
             </v-card-title>
+            <v-radio-group
+                v-model="fileRadio"
+                mandatory
+                row
+                @change="handleRadioChange()"
+            >
+                <v-radio
+                    label="File Upload"
+                    value="file"
+                ></v-radio>
+                <v-radio
+                    label="Url Upload"
+                    value="url"
+                ></v-radio>
+            </v-radio-group>
             <v-file-input
                 label="Image Upload"
                 outlined
@@ -17,9 +32,28 @@
                 v-model="currentFile"
                 @change="handleOnFileChange"
                 ref="fileInput"
+                v-if="fileRadio === 'file'"
             ></v-file-input>
+            <v-row v-else-if="fileRadio === 'url'">
+                <v-col :cols="8">
+                    <v-text-field
+                        label="Regular"
+                        placeholder="URL to Image"
+                        v-model="fileInput"
+                    ></v-text-field>
+                </v-col>
+                <v-col :cols="4">
+                    <v-btn
+                        color="primary"
+                        text
+                        @click="handleConfirmUrl()"
+                    >
+                        Check
+                    </v-btn>
+                </v-col>
+            </v-row>
             <v-img
-                v-if="fileUrl"
+                v-if="(fileType === 'image' && fileUrl) || (fileRadio === 'url' && fileUrl)"
                 class="cameraPicture"
                 :src="fileUrl"
                 lazy-src=""
@@ -42,6 +76,13 @@
                     </v-row>
                 </template>
             </v-img>
+            <embed
+                v-if="fileType === 'application' && fileUrl"
+                class="pdf-class"
+                type="video/webm"
+                :src="fileUrl"
+
+            />
             <v-divider></v-divider>
 
             <v-card-actions>
@@ -86,42 +127,74 @@
             dialog: false,
             currentFile: [],
             fileUrl: "",
+            fileType: "",
+            fileRadio: "",
+            fileInput: "",
         }),
         methods: {
             handleUploadImage() {
-                console.log();
-                let file = this.currentFile;
-                let file2 = this.currentFile;
-                console.log(file);
-                file = URL.createObjectURL(file);
-
-                let img = new Image();
-                img.onload = () => {
-
-                    let payload = [file2, file];
-                    this.$emit("upload-image", payload);
-                    console.log("Hello");
-                }
-                img.src = file;
                 
+                let currentFileTemp = this.currentFile;
+                if(this.fileRadio === "file") {
+                    if(this.fileType === "image") {
+                        let file = URL.createObjectURL(this.currentFile);
+                        console.log(file);
+                        let img = new Image();
+                        img.onload = () => {
+
+                            this.$emit("upload-image", currentFileTemp);
+                            console.log("Hello");
+                        }
+                        img.src = file;
+                    }
+                    else if(this.fileType === "application") {
+                        this.$emit("upload-image", currentFileTemp);
+                    }
+                }
+                else if(this.fileRadio === "url") {
+                    console.log("I'm in!");
+                    this.$emit("upload-image-url", this.fileInput);
+                }
                 this.currentFile = null;
                 this.fileUrl = "";
+                this.fileType = "";
+                this.fileInput = "";
                 this.$store.dispatch('changeDialogUploadImage', false);
+            },
+            handleConfirmUrl() {
+                console.log("")
+                this.fileUrl = this.fileInput;
+                console.log(this.fileUrl);
+            },
+            handleRadioChange(event) {
+                console.log(event);
             },
             handleOnFileChange(event) {
                 console.log(event);
                 if(event !== null) {
                     this.currentfile = event;
                     this.fileUrl = URL.createObjectURL(event);
+                    this.fileType = this.currentFile["type"].split("/")[0];
+
                     console.log(event);
                 }
             },
             handleCloseUpload() {
                 this.currentFile = null;
                 this.fileUrl = "";
+                this.fileType = "";
+                this.fileInput = "";
                 this.$store.dispatch('changeDialogUploadImage', false);
                 this.$emit("delete-last-marker");
             },
         },
     }
 </script>
+
+<style scoped>
+    .pdf-class {
+        max-height: 50rem; 
+        min-height: 40rem;
+        width: 100%;
+    }
+</style>

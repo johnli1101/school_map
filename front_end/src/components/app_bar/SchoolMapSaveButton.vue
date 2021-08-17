@@ -17,6 +17,9 @@ export default {
         
     }),
     computed: {
+        databaseLocalHost() {
+            return this.$store.state.databaseLocalHost;
+        },
         markers() {
             return this.$store.state.markers;
         },
@@ -51,7 +54,7 @@ export default {
                     ,map_width: this.mapBounds[1]
                 }
             }
-            this.axios.post("http://localhost:5000/save", payload).then(response => {
+            this.axios.post("http://" + this.databaseLocalHost + "/save", payload).then(response => {
                 console.log(response);
             }).catch(error => {
                 console.log(error);

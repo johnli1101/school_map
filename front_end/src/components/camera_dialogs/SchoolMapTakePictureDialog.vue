@@ -75,6 +75,9 @@ export default {
         currentPicture: String
     },
     computed: {
+        databaseLocalHost() {
+            return this.$store.state.databaseLocalHost;
+        },
         additionMode() {
             return this.$store.state.additionMode;
         },
@@ -106,7 +109,7 @@ export default {
             this.$store.dispatch('changeLoading', true);
 
             let newFilePath = "";
-            await this.axios.post("http://localhost:5000/uploadCameraImage", {link: this.currentPicture}).then(response => {
+            await this.axios.post("http://" + this.databaseLocalHost + "/uploadCameraImage", {link: this.currentPicture}).then(response => {
                 console.log(response);
                 newFilePath = response["data"];
             }).catch(error => {
@@ -115,7 +118,7 @@ export default {
             let tempMarker = this.activeMarker;
             tempMarker["picture"] = newFilePath;
             console.log(tempMarker);   
-            await this.axios.post("http://localhost:5000/updateMarker", tempMarker).then(response => {
+            await this.axios.post("http://" + this.databaseLocalHost + "/updateMarker", tempMarker).then(response => {
                 console.log(response);
             }).catch(error2 => {
                 console.log(error2);

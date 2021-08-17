@@ -60,6 +60,9 @@
 
         },
         computed: {
+            databaseLocalHost() {
+                return this.$store.state.databaseLocalHost;
+            },
             mapBounds() {
                 return this.$store.state.mapBounds;
             },
@@ -108,7 +111,7 @@
                 this.$store.dispatch('changeLoading', true);
 
                 //clear all markers first
-                // await this.axios.post("http://localhost:5000/clear").then(response => {
+                // await this.axios.post("http://" + this.databaseLocalHost + "/clear").then(response => {
                 //     console.log(response);
                 // }).catch(error => {
                 //     console.log(error);
@@ -119,7 +122,7 @@
                 var data = new FormData()
                 data.append('file', file);
                 console.log(data);
-                await this.axios.post("http://localhost:5000/uploadMap", data, {
+                await this.axios.post("http://" + this.databaseLocalHost + "/uploadMap", data, {
                     headers: {
                         'Content-Type': 'multipart/form-data'
                     }
@@ -137,7 +140,7 @@
                         ,map_height: img.height
                         ,map_width: img.width
                     };
-                await this.axios.post("http://localhost:5000/updateMap", tempMapObj).then(response => {
+                await this.axios.post("http://" + this.databaseLocalHost + "/updateMap", tempMapObj).then(response => {
                     console.log(response);
                 }).catch(error => {
                     console.log(error);

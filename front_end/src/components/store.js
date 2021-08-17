@@ -5,6 +5,10 @@ Vue.use(Vuex);
 
 export default new Vuex.Store({
     state: {
+        //localHostName: "192.168.0.238:8080",                //localhost
+        localHostName: "localhost:8080",
+        databaseLocalHost: "localhost:5000",
+        //databaseLocalHost: "192.168.0.238:5000",            //database
         additionMode: "",                                   //controls the mode of adding a new marker or line segment
         activeMarker: {},                                   //current active marker OR line segment
         activeImageMarker: {},                              //current active image marker
@@ -23,6 +27,7 @@ export default new Vuex.Store({
         dialogCameraConfirm: false,                         //dialog control in toolbar for camera picture taking confirmation
         dialogCameraPreview: false,                         //dialog control in toolbar for camera picture preview
         dialogUploadImage: false,                           //dialog control in image marker for camera image upload
+        dialogUploadImageUrl: false,                        //dialog control in image marker for uploading image by url
         dialogImageMarkerPreview: false,                    //dialog control in image marker for image preview
         dialogClear: false,                                 //dialog control in appbar for clear map
         updateImageMarkerMode: false,                         //to check if uploading a new image for image marker to replace
@@ -137,6 +142,9 @@ export default new Vuex.Store({
         changeDialogUploadImage(state, newState) {
             state.dialogUploadImage = newState;
         },
+        changeDialogUploadImageUrl(state, newState) {
+            state.dialogUploadImageUrl = newState;
+        },
         changeDialogImageMarkerPreview(state, newState) {
             state.dialogImageMarkerPreview = newState;
         },
@@ -171,14 +179,14 @@ export default new Vuex.Store({
             else {
                 let filename = newUrl.substr(newUrl.lastIndexOf('/') + 1);
                 console.log(filename);
-                let newFilePath = "http://localhost:8080/uploaded_assets/map/" + filename
+                let newFilePath = context.state.localHostName + "/uploaded_assets/map/" + filename
                 context.commit('changeMapImageUrl', newFilePath);
             }
         },
         changeMapImageName(context, newName) {
             context.commit('changeMapImageName', newName);
         },
-        // ---------------- Changing Modes and Active Markers ------------------
+        // -----------`----- Changing Modes and Active Markers ------------------
         //changes the mode of the adding line or marker
         changeMode(context, mode) {
             console.log(mode +  " " + context.state.additionMode);
@@ -379,6 +387,11 @@ export default new Vuex.Store({
         },
         changeDialogUploadImage(context, newState) {
             context.commit('changeDialogUploadImage', newState);
+
+            context.commit('changeKeyListen', !newState);
+        },
+        changeDialogUploadImageUrl(context, newState) {
+            context.commit('changeDialogUploadImageUrl', newState);
 
             context.commit('changeKeyListen', !newState);
         },

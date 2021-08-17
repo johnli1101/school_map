@@ -1,5 +1,5 @@
 import flask
-from flask import request, jsonify, send_file
+from flask import request, jsonify, send_file, send_from_directory
 from flask_mysqldb import MySQL
 from flask_cors import CORS, cross_origin
 import urllib.request
@@ -82,20 +82,29 @@ def api_download_photo():
     request_data = request.get_json();
     print(request_data);
 
-    img = Image.open(requests.get(request_data["fileUrl"], stream=True).raw)
-    filename_split, file_extension = os.path.splitext(request_data["fileUrl"])
+    filename = ntpath.basename(request_data["fileUrl"]);
+    filename_split, file_extension = os.path.splitext(filename)
     file_extension2 = file_extension[1:]
     print(file_extension2)
+    print(filename_split)
 
-    file_format = "JPEG"
-    if file_extension2 == "png":
-        file_format = "PNG"
+    #check to see if it's a pdf and if so then handle it differently
+    if file_extension2 == "pdf":
+        filepath = app.config['UPLOAD_FOLDER'] + "markers/"
+        print(filepath)
+        return send_from_directory(filepath, filename, as_attachment=True)
+    else:
+        img = Image.open(requests.get(request_data["fileUrl"], stream=True).raw)
+        
+        file_format = "JPEG"
+        if file_extension2 == "png":
+            file_format = "PNG"
 
-    byte_arr = io.BytesIO()
-    img.save(byte_arr, format=file_format)
+        byte_arr = io.BytesIO()
+        img.save(byte_arr, format=file_format)
 
-    byte_arr = byte_arr.getvalue()
-    return byte_arr
+        byte_arr = byte_arr.getvalue()
+        return byte_arr
 
 #accepts a options parameter and calls the setoptions on the camera api
 @app.route('/getOptions', methods=['POST'])
@@ -572,6 +581,22 @@ def api_upload_camera_image():
     filename_split, file_extension = os.path.splitext(filename)
     filepath = app.config['UPLOAD_FOLDER'] + "camera/" + filename_split + ".jpg"
     urllib.request.urlretrieve(request_data["link"], filepath)
+    print(filepath)
+    #file.save(os.path.join(app.config['UPLOAD_FOLDER'] + "/camera", filename))
+
+    return filepath
+
+#uploads camera image to the directories
+@app.route('/uploadImageUrl', methods=['POST'])
+def api_upload_camera_image_url():
+    request_data = request.get_json();
+    print(request_data);
+
+    filename = ntpath.basename(request_data["link"]);
+    filename_split, file_extension = os.path.splitext(filename)
+    filepath = app.config['UPLOAD_FOLDER'] + "markers/" + filename
+    urllib.request.urlretrieve(request_data["link"], filepath)
+    print(filepath)
     #file.save(os.path.join(app.config['UPLOAD_FOLDER'] + "/camera", filename))
 
     return filepath
@@ -629,4 +654,4 @@ def page_not_found(e):
     return "<h1>404</h1><p>The resource could not be found.</p>", 404
 
 
-app.run()
+app.run(host='0.0.0.0')
