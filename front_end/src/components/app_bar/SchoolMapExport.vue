@@ -15,7 +15,7 @@
         >
             <v-card>
                 <v-card-title class="headline grey lighten-2">
-                    How do you want it exported?
+                    How do you want it exported
                 </v-card-title>
                 <v-card-text>
                     For User: will not include the map information
@@ -67,6 +67,7 @@ import JSZip from 'jszip';
 import JSZipUtils from 'jszip-utils';
 import FileSaver from 'file-saver';
 import axios from 'axios';
+import {ipcRenderer} from "electron";
 
 export default {
     watch: {
@@ -229,7 +230,9 @@ export default {
             //     FileSaver.saveAs(blob, "example.zip");
             // });
         },
-        handleExportForUser() {
+        async handleExportForUser() {
+          const res = await ipcRenderer.invoke('requestAngle', 'localhost', 12345)
+          console.log('角度', res)
             if(!this.errorCheck("picture")) {
                 console.log(this.markers);
                 console.log(this.lineSegments);

@@ -63,13 +63,13 @@
 </template>
 
 <script>
+import { ipcRenderer } from 'electron'
 
 export default {
     created() {
         this.$root.$refs.TakePicture = this;
     },
     data: () => ({
-        
     }),
     props: {
         currentPicture: String
@@ -107,7 +107,8 @@ export default {
         // uploads the photo into local directory in back_end and also saves it into the mysql database
         async handleKeepPhoto() {
             this.$store.dispatch('changeLoading', true);
-
+            const newPictureAgl = await ipcRenderer.invoke('requestAngle', 'localhost', 12345)
+            console.log('角度', newPictureAgl)
             let newFilePath = "";
             await this.axios.post("http://" + this.databaseLocalHost + "/uploadCameraImage", {link: this.currentPicture}).then(response => {
                 console.log(response);
@@ -126,6 +127,7 @@ export default {
             let payload = {
                 marker: this.activeMarker
                 ,picture: newFilePath
+                ,pictureAgl: newPictureAgl
             };
             console.log(payload);
             this.$store.dispatch('updateMarkerPicture', payload);

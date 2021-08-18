@@ -8,5 +8,10 @@ module.exports = {
         ignored: [/node_modules/, /public/],
       }
     }
+  },
+  pluginOptions: {
+    electronBuilder: {
+      nodeIntegration: true
+    }
   }
 }
