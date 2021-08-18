@@ -118,6 +118,7 @@ export default new Vuex.Store({
             state.mapBounds = newBounds;
         },
         changeMapImageUrl(state, newUrl) {
+            console.log(newUrl);
             state.mapImageURL = newUrl;
         },
         changeMapImageName(state, newName) {
@@ -179,7 +180,7 @@ export default new Vuex.Store({
             else {
                 let filename = newUrl.substr(newUrl.lastIndexOf('/') + 1);
                 console.log(filename);
-                let newFilePath = context.state.localHostName + "/uploaded_assets/map/" + filename
+                let newFilePath = "http://" + context.state.localHostName + "/uploaded_assets/map/" + filename
                 context.commit('changeMapImageUrl', newFilePath);
             }
         },
