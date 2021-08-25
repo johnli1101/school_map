@@ -116,7 +116,8 @@ export default {
         this.$root.$refs.TakePicture = this;
     },
     data: () => ({
-        currentPicture: ""
+        currentPicture: "",
+        currentPictureAgl:""
     }),
     mixins: [SchoolMapCameraMixin],
     computed: {
@@ -185,7 +186,7 @@ export default {
             let pictureStatus = await this.waitForFunction(pictureId);
             console.log(pictureStatus);
             this.currentPicture = pictureStatus["results"]["fileUrl"];
-            console.log(this.currentPicture);
+            console.log('currentPicture', this.currentPicture);
             this.$store.dispatch('changeLoading', false);
         },
         async waitForFunction(pictureId) {

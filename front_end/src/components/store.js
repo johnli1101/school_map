@@ -31,6 +31,7 @@ export default new Vuex.Store({
         dialogImageMarkerPreview: false,                    //dialog control in image marker for image preview
         dialogClear: false,                                 //dialog control in appbar for clear map
         updateImageMarkerMode: false,                         //to check if uploading a new image for image marker to replace
+        // androidDeviceIPAddress: "0.0.0.0"
     },
     mutations: {
         // ----- all mode mutations ----
@@ -160,6 +161,10 @@ export default new Vuex.Store({
         changeLoading(state, isLoading) {
             state.loading = isLoading;
         },
+        // changeAndroidDeviceIPAddress(state,payload){
+        //     console.log(payload, 'payload')
+        //     state.androidDeviceIPAddress = payload
+        // }
     },
     actions: {
         // ----  for changing map bounds, map image url, and map image name ----

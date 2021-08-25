@@ -1,9 +1,10 @@
 import axios from 'axios';
 
 export default {
-    data () {
-       currentPicture: ""
-    },
+    data: () => ({
+        currentPicture: "",
+        currentPictureAgl:""
+    }),
     created: function () {
       //  console.log(‘Printing from the Mixin’)
     },
@@ -16,7 +17,8 @@ export default {
          let pictureStatus = await this.waitForFunction(pictureId);
          console.log(pictureStatus);
          this.currentPicture = pictureStatus["results"]["fileUrl"];
-         console.log(this.currentPicture);
+         this.currentPictureAgl = '123'
+         console.log(this.currentPicture, this.currentPictureAgl);
          this.$store.dispatch('changeLoading', false);
       },
       async waitForFunction(pictureId) {

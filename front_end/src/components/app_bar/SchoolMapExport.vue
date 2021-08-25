@@ -67,7 +67,6 @@ import JSZip from 'jszip';
 import JSZipUtils from 'jszip-utils';
 import FileSaver from 'file-saver';
 import axios from 'axios';
-import {ipcRenderer} from "electron";
 
 export default {
     watch: {
@@ -231,8 +230,6 @@ export default {
             // });
         },
         async handleExportForUser() {
-          const res = await ipcRenderer.invoke('requestAngle', 'localhost', 12345)
-          console.log('角度', res)
             if(!this.errorCheck("picture")) {
                 console.log(this.markers);
                 console.log(this.lineSegments);
@@ -256,15 +253,17 @@ export default {
                     newMarkerObject[filename] = [
                             this.markers[i].lat
                             ,this.markers[i].lng
+                            ,this.markers[i].pictureAgl
                         ];
 
                     tempInfoArray = [];
                     tempUrlArray = [];
                     for(let j = 0; j < this.markers[i]["pictureMarkers"].length; ++j) {
                         tempImageMarkerArr = [
-                                this.markers[i]["pictureMarkers"][j].picture
+                          this.markers[i]["pictureMarkers"][j].picture
                                 ,this.markers[i]["pictureMarkers"][j].lat
                                 ,this.markers[i]["pictureMarkers"][j].lng
+                                ,this.markers[i]["pictureMarkers"][j].pictureAgl
                             ];
                         //let regEx = /\b(https?:\/\/\S*\b)/g;
                         //console.log(str.match(regEx));
@@ -390,6 +389,7 @@ export default {
                             picture: this.markers[i].picture
                             ,lat: this.markers[i].lat
                             ,lng: this.markers[i].lng
+                            ,pictureAgl: this.markers[i].pictureAgl
                             ,pictureMarkers: []
                     }
 
@@ -399,6 +399,7 @@ export default {
                             ,picture: this.markers[i]["pictureMarkers"][j].picture
                             ,lat: this.markers[i]["pictureMarkers"][j].lat
                             ,lng: this.markers[i]["pictureMarkers"][j].lng
+                            ,agl: this.markers[i]["pictureMarkers"][j].pictureAgl
                         };
                         newCoordJson["markers"][this.markers[i].label]["pictureMarkers"].push(tempImageMarker);
                     }

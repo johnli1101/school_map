@@ -30,7 +30,10 @@
                 <span>Preview Marker Image</span>
             </v-tooltip>
         </span>
-        <SchoolMapTakePictureDialog :currentPicture="currentPicture" @retake-picture="handleRetakePicture()" />
+        <SchoolMapTakePictureDialog
+            :currentPicture="currentPicture"
+            :currentPictureAgl="currentPictureAgl"
+            @retake-picture="handleRetakePicture()" />
         <SchoolMapCameraConfirmDialog @take-picture="handleTakePicture()" />
         <SchoolMapImagePreviewDialog @retake-picture-preview="handleRetakePicturePreview()" />
     </span>
@@ -41,13 +44,16 @@
 import SchoolMapTakePictureDialog from './camera_dialogs/SchoolMapTakePictureDialog';
 import SchoolMapCameraConfirmDialog from './camera_dialogs/SchoolMapCameraConfirmDialog';
 import SchoolMapImagePreviewDialog from './camera_dialogs/SchoolMapImagePreviewDialog';
+import { ipcRenderer } from 'electron'
 
 export default {
     created() {
         this.$root.$refs.CameraContainer = this;
     },
     data: () => ({
-        currentPicture: ""
+        currentPicture: "",
+        currentPictureAgl: "",
+
     }),
     computed: {
         databaseLocalHost() {
@@ -100,6 +106,10 @@ export default {
             console.log(pictureStatus);
             this.currentPicture = pictureStatus["results"]["fileUrl"];
             console.log(this.currentPicture);
+          this.currentPictureAgl = await ipcRenderer.invoke('requestAngle', '192.168.0.204', 12345)
+          this.androidDeviceIPAddress = this.$store.state.androidDeviceIPAddress
+          // const newPictureAgl = await ipcRenderer.invoke('requestAngle', this.androidDeviceIPAddress, 12345)
+          //   this.currentPictureAgl = '123'
             this.$store.dispatch('changeLoading', false);
         },
         async waitForFunction(pictureId) {
