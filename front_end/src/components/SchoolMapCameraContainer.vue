@@ -107,7 +107,7 @@ export default {
             this.currentPicture = pictureStatus["results"]["fileUrl"];
             console.log(this.currentPicture);
           this.currentPictureAgl = await ipcRenderer.invoke('requestAngle', '192.168.0.204', 12345)
-          this.androidDeviceIPAddress = this.$store.state.androidDeviceIPAddress
+          // this.androidDeviceIPAddress = this.$store.state.androidDeviceIPAddress
           // const newPictureAgl = await ipcRenderer.invoke('requestAngle', this.androidDeviceIPAddress, 12345)
           //   this.currentPictureAgl = '123'
             this.$store.dispatch('changeLoading', false);
