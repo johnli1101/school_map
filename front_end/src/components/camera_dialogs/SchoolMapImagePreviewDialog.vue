@@ -400,7 +400,7 @@ export default {
         },
         addNewImageMarker(latlngObj) {
             let newMarkerName = this.nextUniqueId();
-            let newMarker = {label: newMarkerName, lat: latlngObj["lat"], lng: latlngObj["lng"], picture: ""};
+            let newMarker = {label: newMarkerName, lat: latlngObj["lat"], lng: latlngObj["lng"], agl: "", picture: ""};
             let payload = {
                 markerToChange: this.activeMarker
                 ,newImageMarker: newMarker

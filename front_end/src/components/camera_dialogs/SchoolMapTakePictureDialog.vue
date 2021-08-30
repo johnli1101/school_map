@@ -74,7 +74,7 @@ export default {
     }),
     props: {
       currentPicture: String,
-      currentPictureAgl: String
+      currentAgl: String
     },
     computed: {
         databaseLocalHost() {
@@ -112,8 +112,8 @@ export default {
           // const newPictureAgl = await ipcRenderer.invoke('requestAngle', '192.168.0.204', 12345)
           // this.androidDeviceIPAddress = this.$store.state.androidDeviceIPAddress
           // const newPictureAgl = await ipcRenderer.invoke('requestAngle', this.androidDeviceIPAddress, 12345)
-          const newPictureAgl = this.currentPictureAgl
-          console.log('角度', newPictureAgl)
+          const newAgl = this.currentAgl
+          console.log('角度', newAgl)
             let newFilePath = "";
             await this.axios.post("http://" + this.databaseLocalHost + "/uploadCameraImage", {link: this.currentPicture}).then(response => {
                 console.log(response);
@@ -132,7 +132,7 @@ export default {
             let payload = {
                 marker: this.activeMarker
                 ,picture: newFilePath
-                ,pictureAgl: newPictureAgl
+                ,agl: newAgl
             };
             console.log(payload);
             this.$store.dispatch('updateMarkerPicture', payload);

@@ -44,7 +44,7 @@
 import SchoolMapTakePictureDialog from './camera_dialogs/SchoolMapTakePictureDialog';
 import SchoolMapCameraConfirmDialog from './camera_dialogs/SchoolMapCameraConfirmDialog';
 import SchoolMapImagePreviewDialog from './camera_dialogs/SchoolMapImagePreviewDialog';
-import { ipcRenderer } from 'electron'
+// import { ipcRenderer } from 'electron'
 
 export default {
     created() {
@@ -52,7 +52,7 @@ export default {
     },
     data: () => ({
         currentPicture: "",
-        currentPictureAgl: "",
+        currentAgl: "",
 
     }),
     computed: {
@@ -106,10 +106,10 @@ export default {
             console.log(pictureStatus);
             this.currentPicture = pictureStatus["results"]["fileUrl"];
             console.log(this.currentPicture);
-          this.currentPictureAgl = await ipcRenderer.invoke('requestAngle', '192.168.0.204', 12345)
+          // this.currentPictureAgl = await ipcRenderer.invoke('requestAngle', '192.168.0.204', 12345)
           // this.androidDeviceIPAddress = this.$store.state.androidDeviceIPAddress
           // const newPictureAgl = await ipcRenderer.invoke('requestAngle', this.androidDeviceIPAddress, 12345)
-          //   this.currentPictureAgl = '123'
+            this.currentPictureAgl = '123'
             this.$store.dispatch('changeLoading', false);
         },
         async waitForFunction(pictureId) {

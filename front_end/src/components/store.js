@@ -67,7 +67,7 @@ export default new Vuex.Store({
         },
         updateMarkerPicture(state, payload) {
             Vue.set(state.markers[payload.index], "picture", payload.picture);
-            Vue.set(state.markers[payload.index], "pictureAgl", payload.pictureAgl);
+            Vue.set(state.markers[payload.index], "agl", payload.agl);
             console.log(state.markers[payload.index]);
         },
         // -------- image marker mutations --------------
@@ -262,7 +262,7 @@ export default new Vuex.Store({
             let newPayload = {
                     index: markerIndex
                     ,picture: payload.picture
-                    ,pictureAgl: payload.pictureAgl
+                    ,agl: payload.agl
                 };
             context.commit('updateMarkerPicture', newPayload);
         },
