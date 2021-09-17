@@ -56,8 +56,35 @@
                 <v-divider></v-divider>
 
                 <v-card-actions>
+                    <v-text-field
+                        v-if="degreeEditMode"
+                        label="Degree"
+                        :rules="[rules.required, rules.degreeValue]"
+                        :value="activeMarker.degree"
+                        type="number"
+                        @change="handleChangeDegree"
+                    ></v-text-field>
+                    <span v-else>
+                        Degree: {{activeMarker.degree}}
+                    </span>
                     <v-spacer></v-spacer>
                     <span v-if="!uploadMode">
+                        <v-btn
+                            v-if="!degreeEditMode"
+                            color="primary"
+                            text
+                            @click="handleDegreeEditOn()"
+                        >
+                            Edit Degree
+                        </v-btn>
+                        <v-btn
+                            v-else
+                            color="primary"
+                            text
+                            @click="handleUpdateDegree()"
+                        >
+                            Done
+                        </v-btn>
                         <v-btn
                             color="primary"
                             text
@@ -146,6 +173,17 @@ export default {
             permanent: true
         },
         dialogUploadImage: false,
+        rules: {
+            required: value => !!value || 'Required.',
+            degreeValue: value => (value <= 360.0 && value >= 0) || 'Please enter a value between 0 to 360',
+            // numberRule: v  => {
+            //     if (!v.trim()) return true;
+            //     if (!isNaN(parseFloat(v)) && v >= 0 && v <= 999) return true;
+            //     return 'Number has to be between 0 and 999';
+            // },
+        },
+        degreeEditMode: false,
+        degree: 0
     }),
     computed: {
         localHostName() {
@@ -325,6 +363,35 @@ export default {
                 this.$store.dispatch('changeDialogImageMarkerPreview', true);
             }
         },
+        handleChangeDegree(event) {
+            console.log(event);
+            this.degree = event;
+        },
+        handleDegreeEditOn() {
+            this.degreeEditMode = true;
+            this.degree = this.activeMarker.degree;
+        },
+        async handleUpdateDegree() {
+            console.log(this.activeMarker.degree)
+
+            let tempMarker = this.activeMarker;
+            tempMarker["degree"] = parseFloat(this.degree);
+            this.$store.dispatch('changeLoading', true);
+            await this.axios.post("http://" + this.databaseLocalHost + "/updateMarker", tempMarker).then(response => {
+                console.log(response);
+            }).catch(error2 => {
+                console.log(error2);
+            });
+            this.$store.dispatch('changeLoading', false);
+            let payload = {
+                marker: this.activeMarker
+                ,degree: parseFloat(this.degree)
+            }
+            this.$store.dispatch('updateMarkerDegree', payload);
+            console.log(this.activeMarker);
+            this.degreeEditMode = false;
+            this.degree = this.activeMarker.degree;
+        },
         handleImageImport() {
             let file = this.currentFile;
             let newCoordJson = {};
@@ -418,6 +485,8 @@ export default {
 
         },
         handleCameraImageClose() {
+            this.degree = 0;
+            this.degreeEditMode = false;
             this.uploadMode = false;
             this.$store.dispatch('changeDialogCameraPreview', false);
         },

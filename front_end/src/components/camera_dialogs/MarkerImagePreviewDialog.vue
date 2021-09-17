@@ -113,7 +113,7 @@ export default {
 
     },
     methods: {
-        //this is temp
+        //TODO: FIX
         checkFileType(file) {
             let fileType = "";
             if(file.match(/\b(https?:\/\/\S*\b)/g)) 

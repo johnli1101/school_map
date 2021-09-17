@@ -253,6 +253,7 @@ export default {
                     newMarkerObject[filename] = [
                             this.markers[i].lat
                             ,this.markers[i].lng
+                            ,this.markers[i].degree
                         ];
 
                     tempInfoArray = [];

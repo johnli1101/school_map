@@ -473,7 +473,7 @@
                     let newMarkerName = this.nextUniqueId();
                     console.log(newMarkerName);
 
-                    newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"], picture: "", pictureMarkers: []};
+                    newMarker = {label: newMarkerName, lat: event.latlng["lat"], lng: event.latlng["lng"], picture: "", degree: 0, pictureMarkers: []};
                     console.log(newMarker);
                     this.$store.dispatch('addToMarkers', newMarker);
                     this.$store.dispatch('changeLoading', true);

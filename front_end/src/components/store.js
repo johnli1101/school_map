@@ -68,6 +68,10 @@ export default new Vuex.Store({
             Vue.set(state.markers[payload.index], "picture", payload.picture);
             console.log(state.markers[payload.index]);
         },
+        updateMarkerDegree(state, payload) {
+            Vue.set(state.markers[payload.index], "degree", payload.degree);
+            console.log(state.markers[payload.index]);
+        },
         // -------- image marker mutations --------------
         changeActiveImageMarker(state, imageMarker) {
             state.activeImageMarker = imageMarker;
@@ -258,6 +262,17 @@ export default new Vuex.Store({
                     ,picture: payload.picture
                 };
             context.commit('updateMarkerPicture', newPayload);
+        },
+        //payload requirement:
+        //  degree: 360 (degree value from 0-360)
+        //  marker: { ... } (marker object to update)
+        updateMarkerDegree(context, payload) {
+            let markerIndex = context.state.markers.indexOf(payload.marker);
+            let newPayload = {
+                    index: markerIndex
+                    ,degree: payload.degree
+                };
+            context.commit('updateMarkerDegree', newPayload);
         },
         //name: updateLineByIndexCoord
         //description: updates line by 1 set of coords at a time

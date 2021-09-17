@@ -35,6 +35,12 @@
             <v-divider></v-divider>
 
             <v-card-actions>
+                <v-text-field
+                    label="Degree"
+                    :rules="[rules.required, rules.degreeValue]"
+                    v-model="degree"
+                    type="number"
+                ></v-text-field>
                 <v-spacer></v-spacer>
                 <v-btn
                     color="primary"
@@ -69,7 +75,16 @@ export default {
         this.$root.$refs.TakePicture = this;
     },
     data: () => ({
-        
+        rules: {
+            required: value => !!value || 'Required.',
+            degreeValue: value => (value <= 360.0 && value >= 0) || 'Please enter a value between 0 to 360',
+            // numberRule: v  => {
+            //     if (!v.trim()) return true;
+            //     if (!isNaN(parseFloat(v)) && v >= 0 && v <= 999) return true;
+            //     return 'Number has to be between 0 and 999';
+            // },
+        },
+        degree: 0,
     }),
     props: {
         currentPicture: String
@@ -117,6 +132,7 @@ export default {
             });
             let tempMarker = this.activeMarker;
             tempMarker["picture"] = newFilePath;
+            tempMarker["degree"] = parseFloat(this.degree)
             console.log(tempMarker);   
             await this.axios.post("http://" + this.databaseLocalHost + "/updateMarker", tempMarker).then(response => {
                 console.log(response);
@@ -129,7 +145,12 @@ export default {
             };
             console.log(payload);
             this.$store.dispatch('updateMarkerPicture', payload);
-
+            payload = {
+                marker: this.activeMarker
+                ,degree: parseFloat(this.degree)
+            }
+            this.$store.dispatch('updateMarkerDegree', payload);
+            this.degree = 0;
             this.$store.dispatch('changeLoading', false);
             this.$store.dispatch('changeDialogCamera', false);
         },

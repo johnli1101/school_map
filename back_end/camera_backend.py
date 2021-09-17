@@ -240,7 +240,7 @@ def api_load():
 
     cur = mysql.connection.cursor()
 
-    cur.execute("SELECT label, lat, lng, picture from markers")
+    cur.execute("SELECT label, lat, lng, degree, picture from markers")
 
     markers = []
     marker_label_arr = []
@@ -252,7 +252,8 @@ def api_load():
             "label": row[0],
             "lat": row[1],
             "lng": row[2],
-            "picture": row[3],
+            "degree": row[3],
+            "picture": row[4],
             "pictureMarkers": []
         }
         markers.append(temp_marker_obj)
@@ -357,14 +358,15 @@ def api_add_marker():
     label = request_data["label"]
     lat = request_data["lat"]
     lng = request_data["lng"]
+    degree = request_data["degree"]
     picture = ""
 
-    cur.execute("INSERT INTO markers(label, lat, lng, picture) VALUES (%s, %s, %s, %s)", (label, lat, lng, picture))
+    cur.execute("INSERT INTO markers(label, lat, lng, degree, picture) VALUES (%s, %s, %s, %s, %s)", (label, lat, lng, degree, picture))
 
     mysql.connection.commit()
     cur.close()
 
-    return "Inserted Marker with: label: " + str(label) + " lat: " + str(lat) + " lng: " + str(lng) + " picture: " + str(picture)
+    return "Inserted Marker with: label: " + str(label) + " lat: " + str(lat) + " lng: " + str(lng) + " degree: " + str(degree) + " picture: " + str(picture)
 
 #update marker by new one
 @app.route('/updateMarker', methods=['POST'])
@@ -377,14 +379,15 @@ def api_update_marker():
     label = request_data["label"]
     lat = request_data["lat"]
     lng = request_data["lng"]
+    degree = request_data["degree"]
     picture = request_data["picture"]
     print("Hello")
-    cur.execute("UPDATE markers SET lat = %s, lng = %s, picture = %s WHERE label = %s" , (lat, lng, picture, label))
+    cur.execute("UPDATE markers SET lat = %s, lng = %s, degree = %s, picture = %s WHERE label = %s" , (lat, lng, degree, picture, label))
     print("Almost there")
     mysql.connection.commit()
     cur.close()
 
-    return "Update Marker with: label: " + str(label) + " lat: " + str(lat) + " lng: " + str(lng) + " picture: " + str(picture)
+    return "Update Marker with: label: " + str(label) + " lat: " + str(lat) + " lng: " + str(lng) + " degree: " + str(degree) +  " picture: " + str(picture)
 
 #delete marker by label
 @app.route('/deleteMarker', methods=['POST'])

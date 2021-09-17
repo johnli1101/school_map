@@ -15,7 +15,8 @@ CREATE TABLE IF NOT EXISTS markers (
     label int NOT NULL,
     lat float NOT NULL,
     lng float NOT NULL,
-    picture varchar(255), 
+    degree float NOT NULL,
+    picture varchar(255),
     PRIMARY KEY (label)
 ) ENGINE=INNODB;
 
